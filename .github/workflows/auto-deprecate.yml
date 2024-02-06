@@ -1,0 +1,25 @@
+name: NPM Auto Deprecate
+
+on:
+    schedule:
+        - cron: '0 0 * * *'
+
+jobs:
+    auto-deprecate:
+        name: NPM Auto Deprecate
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+            - name: Use Node.js v20
+              uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
+              with:
+                  node-version: 20
+                  cache: yarn
+                  registry-url: https://registry.npmjs.org/
+            - name: Install Dependencies
+              run: yarn --immutable
+            - name: Deprecate versions
+              run: yarn npm-deprecate
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

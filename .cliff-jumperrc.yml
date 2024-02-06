@@ -1,0 +1,6 @@
+name: react-native-headless-mention
+packagePath: .
+org: imranbarbhuiya
+monoRepo: false
+commitMessageTemplate: 'chore(release): release {{new-version}}'
+tagTemplate: v{{new-version}}
