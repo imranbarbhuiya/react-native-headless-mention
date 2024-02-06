@@ -1,0 +1,89 @@
+name: Continuous Integration
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+
+jobs:
+    Linting:
+        name: Linting
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+            - name: Add problem matcher
+              run: echo "::add-matcher::.github/problemMatchers/eslint.json"
+            - name: Use Node.js v20
+              uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
+              with:
+                  node-version: 20
+                  cache: yarn
+                  registry-url: https://registry.npmjs.org/
+            - name: Install Dependencies
+              run: yarn --immutable
+            - name: Run ESLint
+              run: yarn lint --fix=false
+
+    Testing:
+        name: Unit Tests
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+            - name: Use Node.js v20
+              uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
+              with:
+                  node-version: 20
+                  cache: yarn
+                  registry-url: https://registry.npmjs.org/
+            - name: Install Dependencies
+              run: yarn --immutable
+            - name: Run tests
+              run: yarn test --coverage
+            - name: Store code coverage report
+              uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4
+              with:
+                  name: coverage
+                  path: coverage/
+
+    Building:
+        name: Compile source code
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+            - name: Add problem matcher
+              run: echo "::add-matcher::.github/problemMatchers/tsc.json"
+            - name: Use Node.js v20
+              uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
+              with:
+                  node-version: 20
+                  cache: yarn
+                  registry-url: https://registry.npmjs.org/
+            - name: Install Dependencies
+              run: yarn --immutable
+            - name: Build Code
+              run: yarn build
+
+    Upload_Coverage_Report:
+        name: Upload coverage report to codecov
+        needs: Testing
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+              with:
+                  fetch-depth: 2
+            - name: Download Coverage report
+              uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4
+              with:
+                  name: coverage
+                  path: coverage/
+            - name: Codecov Upload
+              uses: codecov/codecov-action@4fe8c5f003fae66aa5ebb77cfd3e7bfbbda0b6b0 # v3
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  directory: coverage/
+                  fail_ci_if_error: true

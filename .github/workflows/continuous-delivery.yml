@@ -1,0 +1,52 @@
+name: Continuous Delivery
+
+on:
+    workflow_dispatch:
+        inputs:
+            prNumber:
+                description: The number of the PR that is being deployed
+                required: true
+            ref:
+                description: The branch that is being deployed. Should be a branch on the given repository
+                required: false
+                default: main
+            repository:
+                description: The {owner}/{repository} that is being deployed.
+                required: false
+                default: imranbarbhuiya/package-template
+    push:
+        branches:
+            - main
+
+jobs:
+    Publish:
+        name: Publish Next to npm
+        runs-on: ubuntu-latest
+        if: github.repository_owner == 'imranbarbhuiya'
+        steps:
+            - name: Checkout Project
+              uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+              with:
+                  fetch-depth: 0
+                  repository: ${{ github.event.inputs.repository || 'imranbarbhuiya/package-template' }}
+                  ref: ${{ github.event.inputs.ref || 'main' }}
+            - name: Add TypeScript problem matcher
+              run: echo "::add-matcher::.github/problemMatchers/tsc.json"
+            - name: Use Node.js v20
+              uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4
+              with:
+                  node-version: 20
+                  cache: yarn
+                  registry-url: https://registry.yarnpkg.com/
+            - name: Install Dependencies
+              run: yarn --immutable
+            - name: Bump Version & Publish
+              run: |
+                  # Resolve the tag to be used. "next" for push events, "pr-{prNumber}" for dispatch events.
+                  TAG=$([[ ${{ github.event_name }} == 'push' ]] && echo 'next' || echo 'pr-${{ github.event.inputs.prNumber }}')
+                  yarn config set npmAuthToken ${NODE_AUTH_TOKEN}
+                  yarn config set npmPublishRegistry "https://registry.yarnpkg.com"
+                  yarn bump --preid "${TAG}.$(git rev-parse --verify --short HEAD)"
+                  true || yarn npm publish --tag ${TAG}
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
