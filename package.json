@@ -1,7 +1,7 @@
 {
-	"name": "@imranbarbhuiya/package-template",
+	"name": "react-native-headless-mention",
 	"version": "0.0.1",
-	"description": "Package description.",
+	"description": "Coming Soon",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"browser": "dist/index.global.js",
@@ -18,7 +18,7 @@
 	"scripts": {
 		"docs": "typedoc",
 		"lint": "eslint src tests --fix --cache",
-		"format": "prettier --write . --cache",
+		"format": "biome check --apply .",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"update": "yarn upgrade-interactive",
@@ -31,12 +31,16 @@
 		"postpack": "pinst --enable"
 	},
 	"keywords": [
-		"some keywords"
+		"react native",
+		"expo",
+		"mention",
+		"headless",
+		"headless ui",
+		"hashtag",
+		"tag"
 	],
-	"publishConfig": {
-		"access": "public"
-	},
 	"devDependencies": {
+		"@biomejs/biome": "1.5.3",
 		"@commitlint/cli": "^18.6.0",
 		"@commitlint/config-conventional": "^18.6.0",
 		"@favware/cliff-jumper": "^2.2.3",
@@ -47,9 +51,8 @@
 		"eslint": "^8.56.0",
 		"eslint-config-mahir": "^0.0.38",
 		"husky": "^9.0.10",
-		"lint-staged": "^15.2.1",
+		"lint-staged": "^15.2.2",
 		"pinst": "^3.0.0",
-		"prettier": "^3.2.5",
 		"tsup": "^8.0.1",
 		"typedoc": "^0.25.7",
 		"typescript": "^5.3.3",
@@ -62,12 +65,12 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/imranbarbhuiya/template.git"
+		"url": "git+https://github.com/imranbarbhuiya/react-native-headless-mention.git"
 	},
 	"bugs": {
-		"url": "https://github.com/imranbarbhuiya/template/issues"
+		"url": "https://github.com/imranbarbhuiya/react-native-headless-mention/issues"
 	},
-	"homepage": "https://template.js.org/",
+	"homepage": "https://github.com/imranbarbhuiya/react-native-headless-mention#readme",
 	"commitlint": {
 		"extends": [
 			"@commitlint/config-conventional"
