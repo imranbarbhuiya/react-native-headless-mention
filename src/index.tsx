@@ -22,7 +22,7 @@ import {
 } from './lib/utils';
 
 type TextProps = Omit<TextInputProps, 'onChangeText' | 'value'> & { placeholderStyle?: TextStyle };
-interface EditorMethods {
+export interface EditorMethods {
 	keyword: string;
 	onSuggestionTap: (user: any) => void;
 	resetTextbox: () => void;
@@ -53,10 +53,7 @@ export function Editor({
 	const mentionMap = useRef(new Map<[number, number], any>());
 	const [text, setText] = useState<string>('');
 	const [formattedText, setFormattedText] = useState<React.ReactNode>('');
-	const [selection, setSelection] = useState<Selection>({
-		start: 0,
-		end: 0,
-	});
+	const [selection, setSelection] = useState<Selection>();
 	const previousChar = useRef(' ');
 	const [isTrackingStarted, setIsTrackingStarted] = useState(false);
 	const [menIndex, setMenIndex] = useState(0);
@@ -125,15 +122,12 @@ export function Editor({
 
 		const username = `@${user.username}`;
 		const formattedStr = `${initialStr}${username} ${remStr}`;
-		//'@[__display__](__id__)' ///find this trigger parsing from react-mentions
 
-		//set the mentions in the map.
 		const menStartIndex = initialStr.length;
 		const menEndIndex = menStartIndex + (username.length - 1);
 
 		mentionMap.current.set([menStartIndex, menEndIndex], user);
 
-		// update remaining mentions indexes
 		const charAdded = Math.abs(formattedStr.length - text.length);
 		updateMentionsMap(
 			{
@@ -148,6 +142,10 @@ export function Editor({
 		setFormattedText(formatText(formattedStr, mentionMap.current, formatMentionNode));
 		stopTracking();
 		sendMessageToFooter(formattedStr);
+		setSelection({
+			start: formattedStr.length,
+			end: formattedStr.length,
+		});
 	};
 
 	const formatTextWithMentions = (inputText: string) => {
@@ -219,7 +217,7 @@ export function Editor({
 	function onChange(inputText: string) {
 		let text = inputText;
 		const prevText = inputText;
-		const newSelection = { ...selection };
+		const newSelection = { ...(selection ?? { start: 0, end: 0 }) };
 		if (text.length < prevText.length) {
 			let charDeleted = Math.abs(text.length - prevText.length);
 			const totalSelection = {
@@ -276,32 +274,48 @@ export function Editor({
 		sendMessageToFooter(text);
 	}
 
-	useEffect(() => {
-		if (editorRef) {
-			editorRef.current = {
-				keyword,
-				onSuggestionTap,
-				resetTextbox,
-			};
-		}
-	}, [keyword]);
+	if (editorRef) {
+		editorRef.current = {
+			keyword,
+			onSuggestionTap,
+			resetTextbox,
+		};
+	}
 
 	return (
 		<View {...rest}>
 			<View
-				style={[
-					{
-						position: 'absolute',
-						top: 0,
-						width: '100%',
-						height: '100%',
-					},
-				]}
+				style={{
+					position: 'absolute',
+					top: 0,
+					width: '100%',
+					minHeight: 40,
+				}}
 			>
 				{formattedText === '' ? (
-					<Text style={displayStyle}>{formattedText}</Text>
+					<Text
+						style={[
+							{
+								fontSize: 16,
+								fontWeight: '400',
+							},
+							displayStyle,
+						]}
+					>
+						{formattedText}
+					</Text>
 				) : (
-					<Text style={placeholderStyle}>{textInputProps.placeholder}</Text>
+					<Text
+						style={[
+							{
+								color: 'rgba(0, 0, 0, 0.1)',
+								fontSize: 16,
+							},
+							placeholderStyle,
+						]}
+					>
+						{textInputProps.placeholder}
+					</Text>
 				)}
 			</View>
 			<TextInput
@@ -314,7 +328,6 @@ export function Editor({
 					color: 'transparent',
 					alignSelf: 'stretch',
 					width: '100%',
-					height: '100%',
 				}}
 				value={text}
 				selection={selection}
@@ -328,3 +341,5 @@ export function Editor({
 		</View>
 	);
 }
+
+export type { Selection } from './lib/utils';
