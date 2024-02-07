@@ -1,214 +1,349 @@
-export interface Selection {
-	end: number;
-	start: number;
-}
+import { diffChars } from 'diff';
+import {
+	type CharactersDiffChange,
+	type MentionData,
+	type MentionPartType,
+	type Part,
+	type PartType,
+	type Position,
+	type Suggestion,
+} from './types';
 
-export enum Tags {
-	Hashtag = 'hashtag',
-	Italic = 'italic',
-	Mention = 'mention',
-	Strong = 'strong',
-	Underline = 'underline',
-}
+const isMentionPartType = (partType: PartType): partType is MentionPartType =>
+	Boolean('trigger' in partType && partType.trigger);
 
-export const between = (x: number, min: number, max: number) => x >= min && x <= max;
+const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: boolean) =>
+	parts.findIndex((one) =>
+		cursor >= one.position.start && isIncludeEnd ? cursor <= one.position.end : cursor < one.position.end,
+	);
 
-export const isKeysAreSame = (src: [number, number], dest: [number, number]) => src.toString() === dest.toString();
+/**
+ * Method for generating part for plain text
+ *
+ * @param text - plain text that will be added to the part
+ * @param positionOffset - position offset from the very beginning of text
+ */
+const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
+	text,
+	position: {
+		start: positionOffset,
+		end: positionOffset + text.length,
+	},
+});
 
-export const getLastItemInMap = <K, V>(map: Map<K, V>) => Array.from(map)[map.size - 1];
+/**
+ * Method for generating part for mention
+ *
+ * @param mentionPartType
+ * @param mention - mention data
+ * @param positionOffset - position offset from the very beginning of text
+ */
+const generateMentionPart = (mentionPartType: MentionPartType, mention: MentionData, positionOffset = 0): Part => {
+	const text = mentionPartType.getLabel(mention);
 
-export const getLastKeyInMap = <K, V>(map: Map<K, V>) => Array.from(map.keys())[map.size - 1];
-
-export const getLastValueInMap = <K, V>(map: Map<K, V>) => Array.from(map.values())[map.size - 1];
-
-export const getSelectedMentionKeys = (map: Map<[number, number], any>, { start, end }: Selection) => {
-	const mentionKeys = [...map.keys()];
-	return mentionKeys.filter(([a, b]) => between(a, start, end) || between(b, start, end));
-};
-
-export const updateRemainingMentionsIndexes = (
-	map: Map<[number, number], any>,
-	{ start, end }: Selection,
-	diff: number,
-	shouldAdd: boolean,
-) => {
-	const newMap = new Map(map);
-	const keys = getSelectedMentionKeys(newMap, { start, end });
-	for (const key of keys) {
-		const newKey: [number, number] = shouldAdd ? [key[0] + diff, key[1] + diff] : [key[0] - diff, key[1] - diff];
-		const value = newMap.get(key)!;
-		newMap.delete(key);
-		newMap.set(newKey, value);
-	}
-	return newMap;
-};
-
-export const findMentionKeyInMap = (map: Map<[number, number], any>, cursorIndex: number) => {
-	const keys = [...map.keys()];
-	return keys.find(([a, b]) => between(cursorIndex, a, b));
-};
-
-export const addMenInSelection = (
-	selection: Selection,
-	prevSelection: Selection,
-	mentions: Map<[number, number], any>,
-) => {
-	const sel = { ...selection };
-	for (const [[menStart, menEnd]] of mentions) {
-		if (Math.abs(prevSelection.start - prevSelection.end) < Math.abs(sel.start - sel.end)) {
-			if (between(sel.start, menStart, menEnd)) {
-				sel.start = menStart;
-			}
-			if (between(sel.end - 1, menStart, menEnd)) {
-				sel.end = menEnd + 1;
-			}
-		} else {
-			if (between(sel.start, menStart, menEnd)) {
-				sel.start = menEnd + 1;
-			}
-			if (between(sel.end, menStart, menEnd)) {
-				sel.end = menStart;
-			}
-		}
-	}
-
-	return sel;
-};
-
-export const moveCursorToMentionBoundary = (
-	selection: Selection,
-	prevSelection: Selection,
-	mentions: Map<[number, number], any>,
-	isTrackingStarted: boolean,
-) => {
-	const sel = { ...selection };
-	if (isTrackingStarted) return sel;
-	for (const [[menStart, menEnd]] of mentions) {
-		if (prevSelection.start > sel.start) {
-			if (between(sel.start, menStart, menEnd)) {
-				sel.start = menStart;
-				sel.end = menStart;
-			}
-		} else if (between(sel.start - 1, menStart, menEnd)) {
-			sel.start = menEnd + 1;
-			sel.end = menEnd + 1;
-		}
-	}
-	return sel;
-};
-
-export const findMentions = (val: string) => {
-	// TODO: change regex
-	// eslint-disable-next-line prefer-named-capture-group
-	const reg = /@\[([^\]]+?)]\(id:([^\]]+?)\)/gim;
-	const indexes = [];
-	let match;
-	while ((match = reg.exec(val))) {
-		indexes.push({
-			start: match.index,
-			end: reg.lastIndex - 1,
-			username: match[1],
-			id: match[2],
-			type: Tags.Mention,
-		});
-	}
-	return indexes;
-};
-
-export const getMentionsWithInputText = (inputText: string) => {
-	const map = new Map<[number, number], any>();
-	let newValue = '';
-
-	if (inputText === '') return { map, newValue };
-	const retLines = inputText.split('\n');
-
-	for (const [rowIndex, retLine] of retLines.entries()) {
-		const mentions = findMentions(retLine);
-		if (mentions.length) {
-			let lastIndex = 0;
-			let endIndexDiff = 0;
-			for (const [index, men] of mentions.entries()) {
-				newValue = newValue.concat(retLine.slice(lastIndex, men.start));
-				const username = `@${men.username}`;
-				newValue = newValue.concat(username);
-				const menEndIndex = men.start + (username.length - 1);
-				map.set([men.start - endIndexDiff, menEndIndex - endIndexDiff], {
-					id: men.id,
-					username: men.username,
-				});
-				endIndexDiff += Math.abs(men.end - menEndIndex);
-				lastIndex = men.end + 1;
-				if (mentions.length - 1 === index) {
-					const lastStr = retLine.slice(lastIndex);
-					newValue = newValue.concat(lastStr);
-				}
-			}
-		} else {
-			newValue = newValue.concat(retLine);
-		}
-		if (rowIndex !== retLines.length - 1) {
-			newValue = newValue.concat('\n');
-		}
-	}
 	return {
-		map,
-		newValue,
+		text,
+		position: {
+			start: positionOffset,
+			end: positionOffset + text.length,
+		},
+		partType: mentionPartType,
+		data: mention,
 	};
 };
 
-export const displayTextWithMentions = (inputText: string, formatMentionNode: (name: string, id: string) => string) => {
-	if (inputText === '') return null;
-	const retLines = inputText.split('\n');
-	const formattedText = [];
-	for (const [rowIndex, retLine] of retLines.entries()) {
-		const mentions = findMentions(retLine);
-		if (mentions.length) {
-			let lastIndex = 0;
-			for (const [index, men] of mentions.entries()) {
-				const initialStr = retLine.slice(lastIndex, men.start);
-				lastIndex = men.end + 1;
-				formattedText.push(initialStr);
-				const formattedMention = formatMentionNode(`@${men.username}`, `${index}-${men.id}-${rowIndex}`);
-				formattedText.push(formattedMention);
-				if (mentions.length - 1 === index) {
-					const lastStr = retLine.slice(lastIndex);
-					formattedText.push(lastStr);
-				}
-			}
+/**
+ * Function for generation value from parts array
+ *
+ * @param parts
+ */
+const getValueFromParts = (parts: Part[]) => parts.map((item) => (item.data ? item.data.original : item.text)).join('');
+
+/**
+ * Method for generation mention value that accepts mention regex
+ *
+ * @param trigger
+ * @param suggestion
+ */
+const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}[${suggestion.name}](${suggestion.id})`;
+
+const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
+	const newCursor = cursor + count;
+
+	const currentPartIndex = getPartIndexByCursor(parts, cursor);
+	const currentPart = parts[currentPartIndex];
+
+	const newPartIndex = getPartIndexByCursor(parts, newCursor, true);
+	const newPart = parts[newPartIndex];
+
+	let partsInterval: Part[] = [];
+
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	if (!currentPart || !newPart) {
+		return partsInterval;
+	}
+
+	if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
+		partsInterval.push(currentPart);
+	} else {
+		partsInterval.push(generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, count)));
+	}
+
+	if (newPartIndex > currentPartIndex) {
+		partsInterval = partsInterval.concat(parts.slice(currentPartIndex + 1, newPartIndex));
+
+		if (newPart.position.end === newCursor && newPart.position.start >= cursor) {
+			partsInterval.push(newPart);
 		} else {
-			formattedText.push(retLine);
-		}
-		if (rowIndex !== retLines.length - 1) {
-			formattedText.push('\n');
+			partsInterval.push(
+				generatePlainTextPart(newPart.text.slice(0, Math.max(0, newCursor - newPart.position.start))),
+			);
 		}
 	}
-	return formattedText;
+
+	return partsInterval;
 };
 
-export const formatText = (
-	inputText: string,
-	// TODO: value type
-	mentionsMap: Map<[number, number], { id: string; username: string }>,
-	formatMentionNode: (args: { id: string; key: string; name: string }) => React.ReactNode,
-) => {
-	if (inputText === '' || !mentionsMap.size) return inputText;
-	const formattedText: React.ReactNode[] = [];
-	let lastIndex = 0;
-	for (const [[start, end], men] of mentionsMap) {
-		const initialStr = start === 1 ? '' : inputText.slice(lastIndex, start);
-		lastIndex = end + 1;
-		formattedText.push(initialStr);
-		const formattedMention = formatMentionNode({
-			name: `@${men.username}`,
-			id: men.id,
-			key: `${start}-${men.id}-${end}`,
-		});
-		formattedText.push(formattedMention);
-		if (isKeysAreSame(getLastKeyInMap(mentionsMap), [start, end])) {
-			const lastStr = inputText.slice(lastIndex);
-			formattedText.push(lastStr);
+const getMentionPartSuggestionKeywords = (
+	parts: Part[],
+	plainText: string,
+	selection: Position,
+	partTypes: PartType[],
+): { [trigger: string]: string | undefined } => {
+	const keywordByTrigger: { [trigger: string]: string | undefined } = {};
+
+	for (const { trigger, allowedSpacesCount = 1 } of partTypes.filter(isMentionPartType)) {
+		keywordByTrigger[trigger] = undefined;
+
+		if (selection.end !== selection.start) {
+			continue;
+		}
+
+		const part = parts.find((one) => selection.end > one.position.start && selection.end <= one.position.end);
+
+		if (!part || part.data) {
+			continue;
+		}
+
+		const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
+
+		if (
+			triggerIndex === -1 ||
+			triggerIndex < part.position.start ||
+			(triggerIndex > 0 && !/\s/gi.test(plainText[triggerIndex - 1]))
+		) {
+			continue;
+		}
+
+		let spacesCount = 0;
+		for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
+			if (plainText[cursor] === '\n') {
+				continue;
+			}
+
+			if (plainText[cursor] === ' ') {
+				spacesCount += 1;
+
+				if (spacesCount > allowedSpacesCount) {
+					continue;
+				}
+			}
+		}
+
+		keywordByTrigger[trigger] = plainText.slice(triggerIndex + 1, selection.end);
+	}
+
+	return keywordByTrigger;
+};
+
+const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string) => {
+	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
+
+	let newParts: Part[] = [];
+
+	let cursor = 0;
+
+	for (const change of changes) {
+		switch (true) {
+			case change.removed: {
+				cursor += change.count;
+
+				break;
+			}
+
+			case change.added: {
+				newParts.push(generatePlainTextPart(change.value));
+
+				break;
+			}
+
+			default: {
+				if (change.count !== 0) {
+					newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+
+					cursor += change.count;
+				}
+
+				break;
+			}
 		}
 	}
 
-	return formattedText;
+	return getValueFromParts(newParts);
+};
+
+const generateValueWithAddedSuggestion = (
+	parts: Part[],
+	mentionType: MentionPartType,
+	plainText: string,
+	selection: Position,
+	suggestion: Suggestion,
+): string | undefined => {
+	const currentPartIndex = parts.findIndex(
+		(one) => selection.end >= one.position.start && selection.end <= one.position.end,
+	);
+	const currentPart = parts[currentPartIndex];
+
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	if (!currentPart) {
+		return;
+	}
+
+	const triggerPartIndex = currentPart.text.lastIndexOf(
+		mentionType.trigger,
+		selection.end - currentPart.position.start,
+	);
+
+	const newMentionPartPosition: Position = {
+		start: triggerPartIndex,
+		end: selection.end - currentPart.position.start,
+	};
+
+	const isInsertSpaceToNextPart =
+		mentionType.insertSpaceAfterMention &&
+		(plainText.length === selection.end ||
+			parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
+
+	return getValueFromParts([
+		...parts.slice(0, currentPartIndex),
+
+		generatePlainTextPart(currentPart.text.slice(0, Math.max(0, newMentionPartPosition.start))),
+		generateMentionPart(mentionType, {
+			original: getMentionValue(mentionType.trigger, suggestion),
+			trigger: mentionType.trigger,
+			...suggestion,
+		}),
+
+		generatePlainTextPart(
+			`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.slice(Math.max(0, newMentionPartPosition.end))}`,
+		),
+
+		...parts.slice(currentPartIndex + 1),
+	]);
+};
+
+const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, positionOffset = 0): Part => ({
+	text: result[0],
+	position: {
+		start: positionOffset,
+		end: positionOffset + result[0].length,
+	},
+	partType,
+});
+
+const getMentionDataFromRegExpMatchArray = ([, original, trigger, name, id]: RegExpMatchArray): MentionData => ({
+	original,
+	trigger,
+	name,
+	id,
+});
+
+const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): { parts: Part[]; plainText: string } => {
+	let plainText = '';
+	let parts: Part[] = [];
+
+	if (partTypes.length === 0) {
+		plainText += value;
+		parts.push(generatePlainTextPart(value, positionOffset));
+	} else {
+		const [partType, ...restPartTypes] = partTypes;
+
+		const regex = partType.pattern;
+
+		const matches: RegExpMatchArray[] = Array.from(value.matchAll(regex));
+
+		if (matches.length === 0) {
+			return parseValue(value, restPartTypes, positionOffset);
+		}
+
+		if (matches[0].index !== 0) {
+			const text = value.slice(0, Math.max(0, matches[0].index!));
+
+			const plainTextAndParts = parseValue(text, restPartTypes, positionOffset);
+			parts = parts.concat(plainTextAndParts.parts);
+			plainText += plainTextAndParts.plainText;
+		}
+
+		for (let i = 0; i < matches.length; i++) {
+			const result = matches[i];
+
+			if (isMentionPartType(partType)) {
+				const mentionData = getMentionDataFromRegExpMatchArray(result);
+
+				// Matched pattern is a mention and the mention doesn't match current mention type
+				// We should parse the mention with rest part types
+				if (mentionData.trigger === partType.trigger) {
+					const part = generateMentionPart(partType, mentionData, positionOffset + plainText.length);
+
+					parts.push(part);
+
+					plainText += part.text;
+				} else {
+					const plainTextAndParts = parseValue(
+						mentionData.original,
+						restPartTypes,
+						positionOffset + plainText.length,
+					);
+					parts = parts.concat(plainTextAndParts.parts);
+					plainText += plainTextAndParts.plainText;
+				}
+			} else {
+				const part = generateRegexResultPart(partType, result, positionOffset + plainText.length);
+
+				parts.push(part);
+
+				plainText += part.text;
+			}
+
+			if (result.index! + result[0].length !== value.length) {
+				const isLastResult = i === matches.length - 1;
+
+				const text = value.slice(
+					result.index! + result[0].length,
+					isLastResult ? undefined : matches[i + 1].index,
+				);
+
+				const plainTextAndParts = parseValue(text, restPartTypes, positionOffset + plainText.length);
+				parts = parts.concat(plainTextAndParts.parts);
+				plainText += plainTextAndParts.plainText;
+			}
+		}
+	}
+
+	return {
+		plainText,
+		parts,
+	};
+};
+
+export {
+	isMentionPartType,
+	getMentionPartSuggestionKeywords,
+	generateValueFromPartsAndChangedText,
+	generateValueWithAddedSuggestion,
+	generatePlainTextPart,
+	generateMentionPart,
+	getMentionValue,
+	parseValue,
+	getValueFromParts,
 };

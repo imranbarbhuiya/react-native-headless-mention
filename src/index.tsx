@@ -1,345 +1,109 @@
-import React, { useEffect, useRef, useState, type MutableRefObject } from 'react';
+import React, { type MutableRefObject, useMemo, useRef, useState } from 'react';
+import { type NativeSyntheticEvent, Text, TextInput, type TextInputSelectionChangeEventData, View } from 'react-native';
+
+import type { MentionInputProps, MentionPartType, Suggestion } from './lib/types';
 import {
-	type NativeSyntheticEvent,
-	Text,
-	TextInput,
-	type TextInputProps,
-	type TextInputSelectionChangeEventData,
-	type TextStyle,
-	View,
-	type ViewProps,
-} from 'react-native';
-import {
-	type Selection,
-	addMenInSelection,
-	findMentionKeyInMap,
-	formatText,
-	getLastKeyInMap,
-	getMentionsWithInputText,
-	getSelectedMentionKeys,
-	isKeysAreSame,
-	updateRemainingMentionsIndexes,
+	generateValueFromPartsAndChangedText,
+	generateValueWithAddedSuggestion,
+	getMentionPartSuggestionKeywords,
+	isMentionPartType,
+	parseValue,
 } from './lib/utils';
 
-type TextProps = Omit<TextInputProps, 'onChangeText' | 'value'> & { placeholderStyle?: TextStyle };
-export interface EditorMethods {
-	keyword: string;
-	onSuggestionTap: (user: any) => void;
-	resetTextbox: () => void;
-}
-
-export function Editor({
-	textInputProps: { style: displayStyle, placeholderStyle, ...textInputProps } = {},
-	formatMentionNode,
+export function Input({
 	value,
-	onChangeText,
-	trigger = { key: '@', location: 'anywhere' },
-	editorRef,
-	...rest
-}: ViewProps & {
-	editorRef?: MutableRefObject<EditorMethods | null>;
-	formatMentionNode: (args: { id: string; key: string; name: string }) => React.ReactNode;
-	onChangeText?: (args: {
-		displayText: string;
-		text: string;
-	}) => void;
-	textInputProps?: TextProps;
-	trigger?: {
-		key: string;
-		location: 'anywhere' | 'new-word-only';
-	};
-	value?: string;
-}) {
-	const mentionMap = useRef(new Map<[number, number], any>());
-	const [text, setText] = useState<string>('');
-	const [formattedText, setFormattedText] = useState<React.ReactNode>('');
-	const [selection, setSelection] = useState<Selection>();
-	const previousChar = useRef(' ');
-	const [isTrackingStarted, setIsTrackingStarted] = useState(false);
-	const [menIndex, setMenIndex] = useState(0);
-	const [keyword, setKeyword] = useState('');
+	onChange,
+	partTypes = [],
+	inputRef: propInputRef,
+	containerStyle,
+	onSelectionChange,
+	...textInputProps
+}: MentionInputProps) {
+	const textInput = useRef<TextInput | null>(null);
 
-	useEffect(() => {
-		const { map, newValue } = getMentionsWithInputText(value ?? '');
+	const [selection, setSelection] = useState({ start: 0, end: 0 });
 
-		mentionMap.current = map;
-		setText(newValue);
-		setFormattedText(formatText(newValue, mentionMap.current, formatMentionNode));
-		sendMessageToFooter(newValue);
-	}, []);
+	const { plainText, parts } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
 
-	const startTracking = (menIndex: number) => {
-		setIsTrackingStarted(true);
-		setMenIndex(menIndex);
-		setKeyword('');
+	const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+		setSelection(event.nativeEvent.selection);
+
+		onSelectionChange?.(event);
 	};
 
-	const stopTracking = () => {
-		setIsTrackingStarted(false);
+	const onChangeInput = (changedText: string) => {
+		onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
 	};
 
-	const resetTextbox = () => {
-		previousChar.current = ' ';
-		stopTracking();
+	const keywordByTrigger = useMemo(
+		() => getMentionPartSuggestionKeywords(parts, plainText, selection, partTypes),
+		[parts, plainText, selection, partTypes],
+	);
+
+	const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
+		const newValue = generateValueWithAddedSuggestion(parts, mentionType, plainText, selection, suggestion);
+
+		if (!newValue) return;
+
+		onChange(newValue);
 	};
 
-	const updateSuggestions = (lastKeyword: string) => {
-		setKeyword(lastKeyword);
-	};
+	const handleTextInputRef = (ref: TextInput) => {
+		textInput.current = ref;
 
-	const updateMentionsMap = (selection: Selection, count: number, shouldAdd: boolean) => {
-		mentionMap.current = updateRemainingMentionsIndexes(mentionMap.current, selection, count, shouldAdd);
-	};
-
-	function getInitialAndRemainingStrings(inputText: string, menIndex: number) {
-		let initialStr = inputText.slice(0, menIndex).trim();
-		if (initialStr) {
-			initialStr += ' ';
-		}
-
-		let remStr =
-			inputText
-				.slice(menIndex + 1)
-				.replace(/\s+/, '\u0001')
-				.split('\u0001')[1] || '';
-
-		const adjMentIndexes = {
-			start: initialStr.length - 1,
-			end: inputText.length - remStr.length - 1,
-		};
-		const mentionKeys = getSelectedMentionKeys(mentionMap.current, adjMentIndexes);
-		for (const key of mentionKeys) {
-			remStr = `@${mentionMap.current.get(key).username} ${remStr}`;
-		}
-		return {
-			initialStr,
-			remStr,
-		};
-	}
-
-	const onSuggestionTap = (user: any) => {
-		const { initialStr, remStr } = getInitialAndRemainingStrings(text, menIndex);
-
-		const username = `@${user.username}`;
-		const formattedStr = `${initialStr}${username} ${remStr}`;
-
-		const menStartIndex = initialStr.length;
-		const menEndIndex = menStartIndex + (username.length - 1);
-
-		mentionMap.current.set([menStartIndex, menEndIndex], user);
-
-		const charAdded = Math.abs(formattedStr.length - text.length);
-		updateMentionsMap(
-			{
-				start: menEndIndex + 1,
-				end: formattedStr.length,
-			},
-			charAdded,
-			true,
-		);
-
-		setText(formattedStr);
-		setFormattedText(formatText(formattedStr, mentionMap.current, formatMentionNode));
-		stopTracking();
-		sendMessageToFooter(formattedStr);
-		setSelection({
-			start: formattedStr.length,
-			end: formattedStr.length,
-		});
-	};
-
-	const formatTextWithMentions = (inputText: string) => {
-		if (inputText === '' || !mentionMap.current.size) return inputText;
-		let formattedText = '';
-		let lastIndex = 0;
-		for (const [[start, end], men] of mentionMap.current) {
-			const initialStr = start === 1 ? '' : inputText.slice(lastIndex, start);
-			lastIndex = end + 1;
-			formattedText = formattedText.concat(initialStr);
-			formattedText = formattedText.concat(`@[${men.username}](id:${men.id})`);
-			if (isKeysAreSame(getLastKeyInMap(mentionMap.current), [start, end])) {
-				const lastStr = inputText.slice(lastIndex);
-				formattedText = formattedText.concat(lastStr);
-			}
-		}
-		return formattedText;
-	};
-
-	function sendMessageToFooter(text: string) {
-		onChangeText?.({
-			displayText: text,
-			text: formatTextWithMentions(text),
-		});
-	}
-
-	const handleSelectionChange = ({
-		nativeEvent: { selection },
-	}: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-		const prevSelection = selection;
-		let newSelection = { ...selection };
-		if (newSelection.start !== newSelection.end) {
-			newSelection = addMenInSelection(newSelection, prevSelection, mentionMap.current);
-		}
-
-		setSelection(newSelection);
-	};
-
-	const identifyKeyword = (inputText: string) => {
-		if (isTrackingStarted) {
-			let pattern = null;
-			if (trigger.location === 'new-word-only') {
-				pattern = new RegExp(`\\B${trigger.key}[a-z0-9_-]+|\\B${trigger.key}`, `gi`);
+		if (propInputRef) {
+			if (typeof propInputRef === 'function') {
+				propInputRef(ref);
 			} else {
-				pattern = new RegExp(`\\${trigger.key}[a-z0-9_-]+|\\${trigger.key}`, `i`);
-			}
-			const str = inputText.slice(menIndex);
-			const keywordArray = str.match(pattern);
-			if (keywordArray && Boolean(keywordArray.length)) {
-				const lastKeyword = keywordArray[keywordArray.length - 1];
-				updateSuggestions(lastKeyword);
+				(propInputRef as MutableRefObject<TextInput>).current = ref;
 			}
 		}
 	};
 
-	const checkForMention = (inputText: string, selection: Selection) => {
-		const menIndex = selection.start - 1;
-		const lastChar = inputText.slice(menIndex, menIndex + 1);
-		const wordBoundary = trigger.location === 'new-word-only' ? previousChar.current.trim().length === 0 : true;
-		if (lastChar === trigger.key && wordBoundary) {
-			startTracking(menIndex);
-		} else if (lastChar.trim() === '' && isTrackingStarted) {
-			stopTracking();
-		}
-		previousChar.current = lastChar;
-		identifyKeyword(inputText);
-	};
-
-	function onChange(inputText: string) {
-		let text = inputText;
-		const prevText = inputText;
-		const newSelection = { ...(selection ?? { start: 0, end: 0 }) };
-		if (text.length < prevText.length) {
-			let charDeleted = Math.abs(text.length - prevText.length);
-			const totalSelection = {
-				start: newSelection.start,
-				end: charDeleted > 1 ? newSelection.start + charDeleted : newSelection.start,
-			};
-
-			if (totalSelection.start === totalSelection.end) {
-				const key = findMentionKeyInMap(mentionMap.current, totalSelection.start);
-				if (key?.length) {
-					mentionMap.current.delete(key);
-					const initial = text.slice(0, Math.max(0, key[0]));
-					text = initial + text.slice(key[1]);
-					charDeleted += Math.abs(key[0] - key[1]);
-					mentionMap.current.delete(key);
-				}
-			} else {
-				const mentionKeys = getSelectedMentionKeys(mentionMap.current, totalSelection);
-				for (const key of mentionKeys) {
-					mentionMap.current.delete(key);
-				}
-			}
-			updateMentionsMap(
-				{
-					start: newSelection.end,
-					end: prevText.length,
-				},
-				charDeleted,
-				false,
-			);
-		} else {
-			const charAdded = Math.abs(text.length - prevText.length);
-			updateMentionsMap(
-				{
-					start: newSelection.end,
-					end: text.length,
-				},
-				charAdded,
-				true,
-			);
-
-			if (newSelection.start === newSelection.end) {
-				const key = findMentionKeyInMap(mentionMap.current, newSelection.start - 1);
-				if (key?.length) {
-					mentionMap.current.delete(key);
-				}
-			}
-		}
-
-		setText(text);
-		setFormattedText(formatText(text, mentionMap.current, formatMentionNode));
-
-		checkForMention(text, newSelection);
-		sendMessageToFooter(text);
-	}
-
-	if (editorRef) {
-		editorRef.current = {
-			keyword,
-			onSuggestionTap,
-			resetTextbox,
-		};
-	}
+	const renderMentionSuggestions = (mentionType: MentionPartType) => (
+		<React.Fragment key={mentionType.trigger}>
+			{mentionType.renderSuggestions?.({
+				keyword: keywordByTrigger[mentionType.trigger],
+				onSuggestionPress: onSuggestionPress(mentionType),
+			})}
+		</React.Fragment>
+	);
 
 	return (
-		<View {...rest}>
-			<View
-				style={{
-					position: 'absolute',
-					top: 0,
-					width: '100%',
-					minHeight: 40,
-				}}
-			>
-				{formattedText === '' ? (
-					<Text
-						style={[
-							{
-								fontSize: 16,
-								fontWeight: '400',
-							},
-							displayStyle,
-						]}
-					>
-						{formattedText}
-					</Text>
-				) : (
-					<Text
-						style={[
-							{
-								color: 'rgba(0, 0, 0, 0.1)',
-								fontSize: 16,
-							},
-							placeholderStyle,
-						]}
-					>
-						{textInputProps.placeholder}
-					</Text>
-				)}
-			</View>
+		<View style={containerStyle}>
+			{(
+				partTypes.filter(
+					(one) =>
+						isMentionPartType(one) &&
+						one.renderSuggestions &&
+						(!one.renderPosition || one.renderPosition === 'top'),
+				) as MentionPartType[]
+			).map(renderMentionSuggestions)}
 			<TextInput
-				{...textInputProps}
-				style={{
-					fontSize: 16,
-					fontWeight: '400',
-					position: 'absolute',
-					top: 0,
-					color: 'transparent',
-					alignSelf: 'stretch',
-					width: '100%',
-				}}
-				value={text}
-				selection={selection}
-				selectionColor={'#000'}
-				onSelectionChange={handleSelectionChange}
-				scrollEnabled={false}
 				multiline
-				autoFocus
-				onChangeText={onChange}
-			/>
+				{...textInputProps}
+				ref={handleTextInputRef}
+				onChangeText={onChangeInput}
+				onSelectionChange={handleSelectionChange}
+				selection={selection}
+			>
+				<Text>
+					{parts.map(({ text, partType, data }, index) =>
+						partType ? (
+							<Text key={`${index}-${data?.trigger ?? 'pattern'}`} style={partType.textStyle}>
+								{text}
+							</Text>
+						) : (
+							<Text key={index}>{text}</Text>
+						),
+					)}
+				</Text>
+			</TextInput>
+			{(
+				partTypes.filter(
+					(one) => isMentionPartType(one) && one.renderSuggestions && one.renderPosition === 'bottom',
+				) as MentionPartType[]
+			).map(renderMentionSuggestions)}
 		</View>
 	);
 }
-
-export type { Selection } from './lib/utils';

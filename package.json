@@ -28,7 +28,15 @@
 		"postinstall": "husky .github/husky",
 		"postpack": "pinst --enable"
 	},
-	"keywords": ["react native", "expo", "mention", "headless", "headless ui", "hashtag", "tag"],
+	"keywords": [
+		"react native",
+		"expo",
+		"mention",
+		"headless",
+		"headless ui",
+		"hashtag",
+		"tag"
+	],
 	"peerDependencies": {
 		"react": "^18.2.0",
 		"react-native": "^0.73.4"
@@ -55,7 +63,11 @@
 		"typescript": "^5.3.3",
 		"vitest": "^1.2.2"
 	},
-	"files": ["dist/**/*.js*", "dist/**/*.mjs*", "dist/**/*.d*"],
+	"files": [
+		"dist/**/*.js*",
+		"dist/**/*.mjs*",
+		"dist/**/*.d*"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/imranbarbhuiya/react-native-headless-mention.git"
@@ -65,7 +77,9 @@
 	},
 	"homepage": "https://github.com/imranbarbhuiya/react-native-headless-mention#readme",
 	"commitlint": {
-		"extends": ["@commitlint/config-conventional"]
+		"extends": [
+			"@commitlint/config-conventional"
+		]
 	},
 	"lint-staged": {
 		"*.{mjs,js,ts}": "eslint --fix --ext mjs,js,ts"
@@ -79,5 +93,9 @@
 		"ansi-regex": "^5.0.1",
 		"minimist": "^1.2.8"
 	},
-	"packageManager": "yarn@4.1.0"
+	"packageManager": "yarn@4.1.0",
+	"dependencies": {
+		"@types/diff": "^5.0.9",
+		"diff": "^5.1.0"
+	}
 }
