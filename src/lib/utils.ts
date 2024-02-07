@@ -65,7 +65,7 @@ const getValueFromParts = (parts: Part[]) => parts.map((item) => (item.data ? it
  * @param trigger
  * @param suggestion
  */
-const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}[${suggestion.name}](${suggestion.id})`;
+const getMentionValue = (trigger: string, suggestion: Suggestion) => `<${trigger}${suggestion.id}>`;
 
 const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
 	const newCursor = cursor + count;
@@ -251,12 +251,20 @@ const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, p
 	partType,
 });
 
-const getMentionDataFromRegExpMatchArray = ([, original, trigger, name, id]: RegExpMatchArray): MentionData => ({
-	original,
-	trigger,
-	name,
-	id,
-});
+const getMentionDataFromRegExpMatchArray = (arr: RegExpMatchArray): MentionData => {
+	const original = arr[0];
+	const groups = arr.groups;
+
+	const trigger = groups?.trigger ?? arr[1];
+	const id = groups?.id ?? arr[2];
+
+	return {
+		id,
+		original,
+		result: arr,
+		trigger,
+	};
+};
 
 const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): { parts: Part[]; plainText: string } => {
 	let plainText = '';
@@ -290,8 +298,6 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): {
 			if (isMentionPartType(partType)) {
 				const mentionData = getMentionDataFromRegExpMatchArray(result);
 
-				// Matched pattern is a mention and the mention doesn't match current mention type
-				// We should parse the mention with rest part types
 				if (mentionData.trigger === partType.trigger) {
 					const part = generateMentionPart(partType, mentionData, positionOffset + plainText.length);
 

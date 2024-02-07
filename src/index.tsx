@@ -10,6 +10,9 @@ import {
 	parseValue,
 } from './lib/utils';
 
+export * from './lib/types';
+export * from './lib/utils';
+
 export function Input({
 	value,
 	onChange,

@@ -1,7 +1,7 @@
-import { main } from '../src/index.js';
+import { isMentionPartType } from '../src/lib/utils';
 
 describe('Tests', () => {
 	test('should pass', () => {
-		expect(main()).toBe('this builds and pushes');
+		expect(isMentionPartType({ trigger: '@', pattern: /\d+/g })).toBeTruthy();
 	});
 });

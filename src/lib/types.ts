@@ -4,13 +4,12 @@ import type { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 
 
 interface Suggestion {
 	id: string;
-	name: string;
 }
 
 interface MentionData {
 	id: string;
-	name: string;
 	original: string;
+	result?: RegExpMatchArray;
 	trigger: string;
 }
 
