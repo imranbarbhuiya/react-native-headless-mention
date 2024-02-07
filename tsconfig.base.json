@@ -12,9 +12,11 @@
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
 		"moduleResolution": "node",
+		"esModuleInterop": true,
 		"lib": ["es2021"],
 		"declaration": true,
-		"outDir": "dist"
+		"outDir": "dist",
+		"jsx": "react-native",
 	},
 	"includes": ["src/**/*.ts"]
 }

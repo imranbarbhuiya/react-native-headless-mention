@@ -4,8 +4,6 @@
 	"description": "Coming Soon",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
-	"browser": "dist/index.global.js",
-	"unpkg": "dist/index.global.js",
 	"types": "dist/index.d.ts",
 	"exports": {
 		"types": "./dist/index.d.ts",
@@ -30,15 +28,11 @@
 		"postinstall": "husky .github/husky",
 		"postpack": "pinst --enable"
 	},
-	"keywords": [
-		"react native",
-		"expo",
-		"mention",
-		"headless",
-		"headless ui",
-		"hashtag",
-		"tag"
-	],
+	"keywords": ["react native", "expo", "mention", "headless", "headless ui", "hashtag", "tag"],
+	"peerDependencies": {
+		"react": "^18.2.0",
+		"react-native": "^0.73.4"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "1.5.3",
 		"@commitlint/cli": "^18.6.0",
@@ -46,6 +40,7 @@
 		"@favware/cliff-jumper": "^2.2.3",
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/node": "^20.11.16",
+		"@types/react": "^18.2.55",
 		"@vitest/coverage-v8": "^1.2.2",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.56.0",
@@ -53,16 +48,14 @@
 		"husky": "^9.0.10",
 		"lint-staged": "^15.2.2",
 		"pinst": "^3.0.0",
+		"react": "^18.2.0",
+		"react-native": "^0.73.4",
 		"tsup": "^8.0.1",
 		"typedoc": "^0.25.7",
 		"typescript": "^5.3.3",
 		"vitest": "^1.2.2"
 	},
-	"files": [
-		"dist/**/*.js*",
-		"dist/**/*.mjs*",
-		"dist/**/*.d*"
-	],
+	"files": ["dist/**/*.js*", "dist/**/*.mjs*", "dist/**/*.d*"],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/imranbarbhuiya/react-native-headless-mention.git"
@@ -72,9 +65,7 @@
 	},
 	"homepage": "https://github.com/imranbarbhuiya/react-native-headless-mention#readme",
 	"commitlint": {
-		"extends": [
-			"@commitlint/config-conventional"
-		]
+		"extends": ["@commitlint/config-conventional"]
 	},
 	"lint-staged": {
 		"*.{mjs,js,ts}": "eslint --fix --ext mjs,js,ts"
