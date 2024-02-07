@@ -5,6 +5,7 @@ import {
 	TextInput,
 	type TextInputProps,
 	type TextInputSelectionChangeEventData,
+	type TextStyle,
 	View,
 	type ViewProps,
 } from 'react-native';
@@ -20,7 +21,7 @@ import {
 	updateRemainingMentionsIndexes,
 } from './lib/utils';
 
-type TextProps = Omit<TextInputProps, 'onChangeText' | 'value'>;
+type TextProps = Omit<TextInputProps, 'onChangeText' | 'value'> & { placeholderStyle?: TextStyle };
 interface EditorMethods {
 	keyword: string;
 	onSuggestionTap: (user: any) => void;
@@ -28,7 +29,7 @@ interface EditorMethods {
 }
 
 export function Editor({
-	textInputProps: { style: displayStyle, ...textInputProps } = {},
+	textInputProps: { style: displayStyle, placeholderStyle, ...textInputProps } = {},
 	formatMentionNode,
 	value,
 	onChangeText,
@@ -293,11 +294,15 @@ export function Editor({
 						position: 'absolute',
 						top: 0,
 						width: '100%',
+						height: '100%',
 					},
-					displayStyle,
 				]}
 			>
-				{formattedText === '' ? <Text>{formattedText}</Text> : <Text>{textInputProps.placeholder}</Text>}
+				{formattedText === '' ? (
+					<Text style={displayStyle}>{formattedText}</Text>
+				) : (
+					<Text style={placeholderStyle}>{textInputProps.placeholder}</Text>
+				)}
 			</View>
 			<TextInput
 				{...textInputProps}
