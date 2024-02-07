@@ -2,7 +2,7 @@
 
 # react-native-headless-mention
 
-**Coming Soon...**
+**A headless mention component for React Native.**
 
 [![GitHub](https://img.shields.io/github/license/imranbarbhuiya/react-native-headless-mention)](https://github.com/imranbarbhuiya/react-native-headless-mention/blob/main/LICENSE)
 [![codecov](https://codecov.io/gh/imranbarbhuiya/react-native-headless-mention/branch/main/graph/badge.svg?token=token)](https://codecov.io/gh/imranbarbhuiya/react-native-headless-mention)
@@ -12,7 +12,7 @@
 
 ## Description
 
-A description of the package.
+A headless mention component for React Native. It's a headless component, so you'll need to provide your styles and suggestions renderer.
 
 <!-- Read Full Documentation [here](https://template.js.org/). -->
 
@@ -32,9 +32,68 @@ npm i react-native-headless-mention
 
 ## Usage
 
-```ts
-import { Input } from 'react-native-headless-mention';
+```tsx
+import { useState, useRef, useEffect } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { Input, type MentionSuggestionsProps } from 'react-native-headless-mention';
+
+const suggestions = [
+	{ id: '1', name: 'Parbez' },
+	{ id: '2', name: 'Voxelli' },
+	{ id: '3', name: 'Sho' },
+	{ id: '4', name: 'Hound' },
+	{ id: '5', name: 'Sarcaster' },
+];
+
+const renderSuggestions = ({ keyword, onSuggestionPress }: MentionSuggestionsProps) => {
+	if (!keyword) return null;
+
+	return (
+		<View>
+			{suggestions
+				.filter((one) => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+				.map((one) => (
+					<Pressable key={one.id} onPress={() => onSuggestionPress(one)} style={{ padding: 12 }}>
+						<Text>{one.name}</Text>
+					</Pressable>
+				))}
+		</View>
+	);
+};
+
+export default function Campaigns() {
+	const [value, setValue] = useState('');
+	const inputRef = useRef(null);
+
+	useEffect(() => {
+		console.log(value);
+	}, [value]);
+
+	return (
+		<Input
+			inputRef={inputRef}
+			onChange={setValue}
+			partTypes={[
+				{
+					trigger: '@',
+					renderSuggestions,
+					textStyle: { fontWeight: 'bold', color: 'blue' },
+					getLabel(mention) {
+						const { name } = suggestions.find((one) => one.id === mention.id) ?? { name: mention.id };
+						return `@${name}`;
+					},
+					pattern: /<(?<trigger>@)(?<id>\d+)>/g,
+				},
+			]}
+			value={value}
+		/>
+	);
+}
+
 ```
+
+> [!Important]
+> The pattern must be a global regex. If it's a mention regex then don't forget to add the group name `trigger` and `id` in the regex.
 
 ### Some contents goes here
 
