@@ -44,7 +44,7 @@ const suggestions = [
 ];
 
 const renderSuggestions = ({ keyword, onSuggestionPress }: MentionSuggestionsProps) => {
-	if (keyword === null) return null;
+	if (keyword === undefined) return null;
 
 	return (
 		<View>
@@ -87,10 +87,13 @@ export default function Campaigns() {
 > [!Important]
 > The pattern must be a global regex. If it's a mention regex then don't forget to add the group name `trigger` and `id` in the regex.
 
+> [!Note]
+> 2nd param of `onChange` provides all the parts of the value. You can use it to get the mentions present in the value.
+
 ### Get mentions from the value
 
 ```tsx
-import {  parseValue, type MentionPartType } from 'react-native-headless-mention';
+import { parseValue, type MentionPartType } from 'react-native-headless-mention';
 
 
 const partTypes: MentionPartType[] = [
