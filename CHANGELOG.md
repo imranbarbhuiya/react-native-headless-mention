@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.1.2](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.2...v1.1.2) - (2024-02-09)
+
+## 🐛 Bug Fixes
+
+- Remove name prop ([1d8cea2](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/1d8cea29dd71327ae08c1f63dab00d64ce4b828f))
+- Pass new parts ([14d65aa](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/14d65aa68e8c0fe3e42bca9b3c110269552592c0))
+
 # [1.1.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.1...v1.1.1) - (2024-02-09)
 
 ## 📝 Documentation
