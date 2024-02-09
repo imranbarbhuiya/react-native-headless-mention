@@ -156,7 +156,11 @@ const getMentionPartSuggestionKeywords = (
 	return keywordByTrigger;
 };
 
-const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string) => {
+const generateValueFromPartsAndChangedText = (
+	parts: Part[],
+	originalText: string,
+	changedText: string,
+): [string, Part[]] => {
 	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
 
 	let newParts: Part[] = [];
@@ -189,7 +193,7 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
 		}
 	}
 
-	return getValueFromParts(newParts);
+	return [getValueFromParts(newParts), newParts];
 };
 
 const generateValueWithAddedSuggestion = (
