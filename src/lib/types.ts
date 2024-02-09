@@ -57,7 +57,7 @@ interface Part {
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
 	containerStyle?: StyleProp<ViewStyle>;
 	inputRef?: Ref<TextInput>;
-	onChange: (value: string) => any;
+	onChange: (value: string, parts: Part[]) => any;
 	partTypes?: PartType[];
 	value: string;
 };

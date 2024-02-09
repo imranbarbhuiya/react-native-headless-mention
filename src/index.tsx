@@ -35,7 +35,7 @@ export function Input({
 	};
 
 	const onChangeInput = (changedText: string) => {
-		onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
+		onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText), parts);
 	};
 
 	const keywordByTrigger = useMemo(
@@ -48,7 +48,7 @@ export function Input({
 
 		if (!newValue) return;
 
-		onChange(newValue);
+		onChange(newValue, parts);
 	};
 
 	const handleTextInputRef = (ref: TextInput) => {
