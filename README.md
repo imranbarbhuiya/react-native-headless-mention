@@ -98,7 +98,6 @@ import { parseValue, type MentionPartType } from 'react-native-headless-mention'
 
 const partTypes: MentionPartType[] = [
 	{
-		name: 'mention',
 		trigger: '@',
 		renderSuggestions,
 		textStyle: { fontWeight: '500' },
@@ -113,7 +112,7 @@ const partTypes: MentionPartType[] = [
 
 const values = parseValue(value, partTypes);
 
-console.log(values.parts.filter((part) => part.name === 'mention').map((part) => part.data?.id));
+console.log(values.parts.filter((part) => part.data?.trigger === '@').map((part) => part.data?.id));
 ```
 
 ## Buy me some doughnuts

@@ -29,7 +29,6 @@ interface MentionPartType {
 	allowedSpacesCount?: number;
 	getLabel: (mention: MentionData) => string;
 	insertSpaceAfterMention?: boolean;
-	name?: string;
 	// RegExp with global flag
 	pattern: RegExp;
 	renderPosition?: 'bottom' | 'top';
@@ -39,7 +38,6 @@ interface MentionPartType {
 }
 
 interface PatternPartType {
-	name?: string;
 	// RegExp with global flag
 	pattern: RegExp;
 	textStyle?: StyleProp<TextStyle>;
