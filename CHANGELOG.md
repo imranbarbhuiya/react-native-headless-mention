@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.1.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.1...v1.1.1) - (2024-02-09)
+
+## 📝 Documentation
+
+- Update example ([1579998](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/15799982c007c3314cc7b29045568bd1482fb5dd))
+
 # [1.1.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.0...v1.1.0) - (2024-02-09)
 
 ## 🚀 Features
