@@ -27,26 +27,21 @@ interface MentionSuggestionsProps {
 
 interface MentionPartType {
 	allowedSpacesCount?: number;
-
 	getLabel: (mention: MentionData) => string;
-
 	insertSpaceAfterMention?: boolean;
-
+	name?: string;
+	// RegExp with global flag
 	pattern: RegExp;
-
 	renderPosition?: 'bottom' | 'top';
-
 	renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
-
 	textStyle?: StyleProp<TextStyle>;
-
 	trigger: string;
 }
 
 interface PatternPartType {
-	// RexExp with global flag
+	name?: string;
+	// RegExp with global flag
 	pattern: RegExp;
-
 	textStyle?: StyleProp<TextStyle>;
 }
 
@@ -55,20 +50,15 @@ type PartType = MentionPartType | PatternPartType;
 interface Part {
 	data?: MentionData;
 	partType?: PartType;
-
 	position: Selection;
-
 	text: string;
 }
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
 	containerStyle?: StyleProp<ViewStyle>;
 	inputRef?: Ref<TextInput>;
-
 	onChange: (value: string) => any;
-
 	partTypes?: PartType[];
-
 	value: string;
 };
 

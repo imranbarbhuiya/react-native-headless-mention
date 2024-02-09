@@ -14,8 +14,6 @@
 
 A headless mention component for React Native. It's a headless component, so you'll need to provide your styles and suggestions renderer.
 
-<!-- Read Full Documentation [here](https://template.js.org/). -->
-
 ## Features
 
 -   Written In Typescript
@@ -46,7 +44,7 @@ const suggestions = [
 ];
 
 const renderSuggestions = ({ keyword, onSuggestionPress }: MentionSuggestionsProps) => {
-	if (!keyword) return null;
+	if (keyword === null) return null;
 
 	return (
 		<View>
@@ -63,15 +61,9 @@ const renderSuggestions = ({ keyword, onSuggestionPress }: MentionSuggestionsPro
 
 export default function Campaigns() {
 	const [value, setValue] = useState('');
-	const inputRef = useRef(null);
-
-	useEffect(() => {
-		console.log(value);
-	}, [value]);
 
 	return (
 		<Input
-			inputRef={inputRef}
 			onChange={setValue}
 			partTypes={[
 				{
@@ -79,8 +71,8 @@ export default function Campaigns() {
 					renderSuggestions,
 					textStyle: { fontWeight: 'bold', color: 'blue' },
 					getLabel(mention) {
-						const { name } = suggestions.find((one) => one.id === mention.id) ?? { name: mention.id };
-						return `@${name}`;
+						const user = suggestions.find((one) => one.id === mention.id);
+						return user ? `@${user.name}` : `<@${mention.id}>`;
 					},
 					pattern: /<(?<trigger>@)(?<id>\d+)>/g,
 				},
@@ -95,7 +87,31 @@ export default function Campaigns() {
 > [!Important]
 > The pattern must be a global regex. If it's a mention regex then don't forget to add the group name `trigger` and `id` in the regex.
 
-### Some contents goes here
+### Get mentions from the value
+
+```tsx
+import {  parseValue, type MentionPartType } from 'react-native-headless-mention';
+
+
+const partTypes: MentionPartType[] = [
+	{
+		name: 'mention',
+		trigger: '@',
+		renderSuggestions,
+		textStyle: { fontWeight: '500' },
+		getLabel(mention) {
+			const user = suggestions.find((one) => one.id === mention.id);
+			return user ? `@${user.name}` : `<@${mention.id}>`;
+		},
+		pattern: /<(?<trigger>@)(?<id>\d+)>/g,
+		renderPosition: 'bottom',
+	},
+];
+
+const values = parseValue(value, partTypes);
+
+console.log(values.parts.filter((part) => part.name === 'mention').map((part) => part.data?.id));
+```
 
 ## Buy me some doughnuts
 
