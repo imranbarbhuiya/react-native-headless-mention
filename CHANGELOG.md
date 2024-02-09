@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.1.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.0...v1.1.0) - (2024-02-09)
+
+## 🚀 Features
+
+- Pass parts to onChange ([c5479be](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/c5479beae21148e474c3eba7475d56286f709e6e))
+- Allow name prop in parts ([1281ceb](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/1281cebd78320cc912097b575751518c60252ac7))
+
 # [0.0.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v0.0.1...v0.0.1) - (2024-02-07)
 
 ## 🐛 Bug Fixes
