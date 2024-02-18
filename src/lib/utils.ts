@@ -79,22 +79,16 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
 	let partsInterval: Part[] = [];
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (!currentPart || !newPart) {
-		return partsInterval;
-	}
+	if (!currentPart || !newPart) return partsInterval;
 
-	if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
-		partsInterval.push(currentPart);
-	} else {
-		partsInterval.push(generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, count)));
-	}
+	if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) partsInterval.push(currentPart);
+	else partsInterval.push(generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, count)));
 
 	if (newPartIndex > currentPartIndex) {
 		partsInterval = partsInterval.concat(parts.slice(currentPartIndex + 1, newPartIndex));
 
-		if (newPart.position.end === newCursor && newPart.position.start >= cursor) {
-			partsInterval.push(newPart);
-		} else {
+		if (newPart.position.end === newCursor && newPart.position.start >= cursor) partsInterval.push(newPart);
+		else {
 			partsInterval.push(
 				generatePlainTextPart(newPart.text.slice(0, Math.max(0, newCursor - newPart.position.start))),
 			);
@@ -115,15 +109,11 @@ const getMentionPartSuggestionKeywords = (
 	for (const { trigger, allowedSpacesCount = 1 } of partTypes.filter(isMentionPartType)) {
 		keywordByTrigger[trigger] = undefined;
 
-		if (selection.end !== selection.start) {
-			continue;
-		}
+		if (selection.end !== selection.start) continue;
 
 		const part = parts.find((one) => selection.end > one.position.start && selection.end <= one.position.end);
 
-		if (!part || part.data) {
-			continue;
-		}
+		if (!part || part.data) continue;
 
 		const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
 
@@ -131,22 +121,17 @@ const getMentionPartSuggestionKeywords = (
 			triggerIndex === -1 ||
 			triggerIndex < part.position.start ||
 			(triggerIndex > 0 && !/\s/gi.test(plainText[triggerIndex - 1]))
-		) {
+		)
 			continue;
-		}
 
 		let spacesCount = 0;
 		for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
-			if (plainText[cursor] === '\n') {
-				continue;
-			}
+			if (plainText[cursor] === '\n') continue;
 
 			if (plainText[cursor] === ' ') {
 				spacesCount += 1;
 
-				if (spacesCount > allowedSpacesCount) {
-					continue;
-				}
+				if (spacesCount > allowedSpacesCount) continue;
 			}
 		}
 
@@ -209,9 +194,7 @@ const generateValueWithAddedSuggestion = (
 	const currentPart = parts[currentPartIndex];
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (!currentPart) {
-		return;
-	}
+	if (!currentPart) return;
 
 	const triggerPartIndex = currentPart.text.lastIndexOf(
 		mentionType.trigger,
@@ -284,9 +267,7 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): {
 
 		const matches: RegExpMatchArray[] = Array.from(value.matchAll(regex));
 
-		if (matches.length === 0) {
-			return parseValue(value, restPartTypes, positionOffset);
-		}
+		if (matches.length === 0) return parseValue(value, restPartTypes, positionOffset);
 
 		if (matches[0].index !== 0) {
 			const text = value.slice(0, Math.max(0, matches[0].index!));

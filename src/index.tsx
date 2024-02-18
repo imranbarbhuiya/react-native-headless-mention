@@ -55,11 +55,8 @@ export function Input({
 		textInput.current = ref;
 
 		if (propInputRef) {
-			if (typeof propInputRef === 'function') {
-				propInputRef(ref);
-			} else {
-				(propInputRef as MutableRefObject<TextInput>).current = ref;
-			}
+			if (typeof propInputRef === 'function') propInputRef(ref);
+			else (propInputRef as MutableRefObject<TextInput>).current = ref;
 		}
 	};
 
