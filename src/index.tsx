@@ -20,6 +20,7 @@ export function Input({
 	inputRef: propInputRef,
 	containerStyle,
 	onSelectionChange,
+	component: Component = TextInput,
 	...textInputProps
 }: MentionInputProps) {
 	const textInput = useRef<TextInput | null>(null);
@@ -79,7 +80,7 @@ export function Input({
 						(!one.renderPosition || one.renderPosition === 'top'),
 				) as MentionPartType[]
 			).map(renderMentionSuggestions)}
-			<TextInput
+			<Component
 				multiline
 				{...textInputProps}
 				ref={handleTextInputRef}
@@ -98,7 +99,7 @@ export function Input({
 						),
 					)}
 				</Text>
-			</TextInput>
+			</Component>
 			{(
 				partTypes.filter(
 					(one) => isMentionPartType(one) && one.renderSuggestions && one.renderPosition === 'bottom',

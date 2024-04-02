@@ -53,6 +53,7 @@ interface Part {
 }
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
+	component?: React.ElementType;
 	containerStyle?: StyleProp<ViewStyle>;
 	inputRef?: Ref<TextInput>;
 	onChange: (value: string, parts: Part[]) => any;

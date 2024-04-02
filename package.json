@@ -28,15 +28,7 @@
 		"postinstall": "husky .github/husky",
 		"postpack": "pinst --enable"
 	},
-	"keywords": [
-		"react native",
-		"expo",
-		"mention",
-		"headless",
-		"headless ui",
-		"hashtag",
-		"tag"
-	],
+	"keywords": ["react native", "expo", "mention", "headless", "headless ui", "hashtag", "tag"],
 	"dependencies": {
 		"diff": "^5.2.0"
 	},
@@ -52,7 +44,7 @@
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/diff": "^5.0.9",
 		"@types/node": "^20.12.2",
-		"@types/react": "^18.2.73",
+		"@types/react": "^18.2.74",
 		"@vitest/coverage-v8": "^1.4.0",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.57.0",
@@ -67,11 +59,7 @@
 		"typescript": "^5.4.3",
 		"vitest": "^1.4.0"
 	},
-	"files": [
-		"dist/**/*.js*",
-		"dist/**/*.mjs*",
-		"dist/**/*.d*"
-	],
+	"files": ["dist/**/*.js*", "dist/**/*.mjs*", "dist/**/*.d*"],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/imranbarbhuiya/react-native-headless-mention.git"
@@ -81,9 +69,7 @@
 	},
 	"homepage": "https://github.com/imranbarbhuiya/react-native-headless-mention#readme",
 	"commitlint": {
-		"extends": [
-			"@commitlint/config-conventional"
-		]
+		"extends": ["@commitlint/config-conventional"]
 	},
 	"lint-staged": {
 		"*.{mjs,js,ts}": "eslint --fix --ext mjs,js,ts"
