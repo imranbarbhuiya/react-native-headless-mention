@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.2.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.2...v1.2.0) - (2024-04-02)
+
+## 🐛 Bug Fixes
+
+- Editing text removes texts after the cursor ([db20e30](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/db20e3068b15a2755253a6be3ef55fe315b57bfb))
+
+## 🚀 Features
+
+- Allow custom text input component ([06736aa](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/06736aaa698c9f9a76e45e15fad8d09f819e00bb))
+
 # [1.1.2](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.2...v1.1.2) - (2024-02-09)
 
 ## 🐛 Bug Fixes
