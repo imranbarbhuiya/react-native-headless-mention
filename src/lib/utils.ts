@@ -1,13 +1,5 @@
 import { diffChars } from 'diff';
-import {
-	type CharactersDiffChange,
-	type MentionData,
-	type MentionPartType,
-	type Part,
-	type PartType,
-	type Position,
-	type Suggestion,
-} from './types';
+import type { CharactersDiffChange, MentionData, MentionPartType, Part, PartType, Position, Suggestion } from './types';
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType =>
 	Boolean('trigger' in partType && partType.trigger);
@@ -80,9 +72,12 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (!currentPart || !newPart) return partsInterval;
-
 	if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) partsInterval.push(currentPart);
-	else partsInterval.push(generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, count)));
+	else {
+		partsInterval.push(
+			generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, newCursor)),
+		);
+	}
 
 	if (newPartIndex > currentPartIndex) {
 		partsInterval = partsInterval.concat(parts.slice(currentPartIndex + 1, newPartIndex));
@@ -147,7 +142,6 @@ const generateValueFromPartsAndChangedText = (
 	changedText: string,
 ): [string, Part[]] => {
 	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
-
 	let newParts: Part[] = [];
 
 	let cursor = 0;
@@ -162,14 +156,12 @@ const generateValueFromPartsAndChangedText = (
 
 			case change.added: {
 				newParts.push(generatePlainTextPart(change.value));
-
 				break;
 			}
 
 			default: {
 				if (change.count !== 0) {
 					newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
-
 					cursor += change.count;
 				}
 
