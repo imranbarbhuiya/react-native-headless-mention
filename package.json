@@ -45,13 +45,13 @@
 		"react-native": "^0.73.4"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.6.3",
+		"@biomejs/biome": "1.6.4",
 		"@commitlint/cli": "^19.2.1",
 		"@commitlint/config-conventional": "^19.1.0",
 		"@favware/cliff-jumper": "^3.0.1",
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/diff": "^5.0.9",
-		"@types/node": "^20.12.2",
+		"@types/node": "^20.12.5",
 		"@types/react": "^18.2.74",
 		"@vitest/coverage-v8": "^1.4.0",
 		"cz-conventional-changelog": "^3.3.0",
@@ -64,7 +64,7 @@
 		"react-native": "^0.73.6",
 		"tsup": "^8.0.2",
 		"typedoc": "^0.25.12",
-		"typescript": "^5.4.3",
+		"typescript": "^5.4.4",
 		"vitest": "^1.4.0"
 	},
 	"files": [
