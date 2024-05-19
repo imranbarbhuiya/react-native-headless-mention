@@ -51,7 +51,7 @@
 		"@favware/cliff-jumper": "^3.0.3",
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/diff": "^5.2.1",
-		"@types/node": "^20.12.11",
+		"@types/node": "^20.12.12",
 		"@types/react": "^18.3.2",
 		"@vitest/coverage-v8": "^1.6.0",
 		"cz-conventional-changelog": "^3.3.0",
