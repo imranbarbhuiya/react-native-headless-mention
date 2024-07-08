@@ -8,6 +8,8 @@
 [![codecov](https://codecov.io/gh/imranbarbhuiya/react-native-headless-mention/branch/main/graph/badge.svg?token=token)](https://codecov.io/gh/imranbarbhuiya/react-native-headless-mention)
 [![npm](https://img.shields.io/npm/v/react-native-headless-mention?color=crimson&logo=npm&style=flat-square)](https://www.npmjs.com/package/react-native-headless-mention)
 
+<video src="./.github/mention.mov" autoplay loop muted>
+
 </div>
 
 ## Description
@@ -29,6 +31,8 @@ npm i react-native-headless-mention
 ```
 
 ## Usage
+
+### For mention with autocomplete
 
 ```tsx
 import { useState, useRef, useEffect } from 'react';
@@ -113,6 +117,50 @@ const partTypes: MentionPartType[] = [
 const values = parseValue(value, partTypes);
 
 console.log(values.parts.filter((part) => part.data?.trigger === '@').map((part) => part.data?.id));
+```
+
+### For formatting
+This lib can also be used for formatting. It doesn't provide any pre-defined formatting but you can do it with regex. Here's a simple demo to achive simple markdown support
+
+```tsx
+import { useState, useRef, useEffect } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import { Input } from 'react-native-headless-mention';
+
+
+export default function Campaigns() {
+	const [value, setValue] = useState('');
+
+	return (
+		<Input
+			onChange={setValue}
+			partTypes={[
+				{
+					textStyle: { fontWeight: '700' },
+					pattern: /\*\*(?<text>\S(?:.*?\S)?)\*\*/g,
+				},
+				{
+					textStyle: { textDecorationLine: 'underline' },
+					pattern: /__(?<text>\S(?:.*?\S)?)__/g,
+				},
+				{
+					textStyle: { fontStyle: 'italic' },
+					pattern: /\*(?<text>\S(?:.*?\S)?)\*/g,
+				},
+				{
+					textStyle: { fontStyle: 'italic' },
+					pattern: /_(?<text>\S(?:.*?\S)?)_/g,
+				},
+				{
+					textStyle: { textDecorationLine: 'line-through' },
+					pattern: /~(?<text>\S(?:.*?\S)?)~/g,
+				},
+			]}
+			value={value}
+		/>
+	);
+}
+
 ```
 
 ## Buy me some doughnuts

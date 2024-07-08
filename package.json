@@ -16,7 +16,7 @@
 	"scripts": {
 		"docs": "typedoc",
 		"lint": "eslint src tests --fix --cache",
-		"format": "biome check --apply .",
+		"format": "biome check --write .",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"update": "yarn upgrade-interactive",
@@ -28,15 +28,7 @@
 		"postinstall": "husky .github/husky",
 		"postpack": "pinst --enable"
 	},
-	"keywords": [
-		"react native",
-		"expo",
-		"mention",
-		"headless",
-		"headless ui",
-		"hashtag",
-		"tag"
-	],
+	"keywords": ["react native", "expo", "mention", "headless", "headless ui", "hashtag", "tag"],
 	"dependencies": {
 		"diff": "^5.2.0"
 	},
@@ -51,9 +43,9 @@
 		"@favware/cliff-jumper": "^4.0.2",
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/diff": "^5.2.1",
-		"@types/node": "^20.14.9",
+		"@types/node": "^20.14.10",
 		"@types/react": "^18.3.3",
-		"@vitest/coverage-v8": "^1.6.0",
+		"@vitest/coverage-v8": "^2.0.1",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^8.57.0",
 		"eslint-config-mahir": "^0.0.43",
@@ -61,17 +53,13 @@
 		"lint-staged": "^15.2.7",
 		"pinst": "^3.0.0",
 		"react": "^18.3.1",
-		"react-native": "^0.74.2",
+		"react-native": "^0.74.3",
 		"tsup": "^8.1.0",
 		"typedoc": "^0.26.3",
-		"typescript": "^5.5.2",
-		"vitest": "^1.6.0"
+		"typescript": "^5.5.3",
+		"vitest": "^2.0.1"
 	},
-	"files": [
-		"dist/**/*.js*",
-		"dist/**/*.mjs*",
-		"dist/**/*.d*"
-	],
+	"files": ["dist/**/*.js*", "dist/**/*.mjs*", "dist/**/*.d*"],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/imranbarbhuiya/react-native-headless-mention.git"
@@ -81,9 +69,7 @@
 	},
 	"homepage": "https://github.com/imranbarbhuiya/react-native-headless-mention#readme",
 	"commitlint": {
-		"extends": [
-			"@commitlint/config-conventional"
-		]
+		"extends": ["@commitlint/config-conventional"]
 	},
 	"lint-staged": {
 		"*.{mjs,js,ts}": "eslint --fix --ext mjs,js,ts"
