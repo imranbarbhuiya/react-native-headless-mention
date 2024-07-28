@@ -43,7 +43,7 @@
 		"@favware/cliff-jumper": "^4.0.3",
 		"@favware/npm-deprecate": "^1.0.7",
 		"@types/diff": "^5.2.1",
-		"@types/node": "^20.14.12",
+		"@types/node": "^20.14.13",
 		"@types/react": "^18.3.3",
 		"@vitest/coverage-v8": "^2.0.4",
 		"cz-conventional-changelog": "^3.3.0",
