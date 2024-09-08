@@ -30,7 +30,7 @@
 	},
 	"keywords": ["react native", "expo", "mention", "headless", "headless ui", "hashtag", "tag"],
 	"dependencies": {
-		"diff": "^5.2.0"
+		"diff": "^7.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0",
