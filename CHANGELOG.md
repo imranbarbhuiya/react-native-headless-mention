@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.2.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.0...v1.2.1) - (2024-10-24)
+
+## 🐛 Bug Fixes
+
+- **deps:** Update dependency diff to v7 (#81) ([94d2a9d](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/94d2a9d1c0bcece7ee30c5d9674811687c27386d))
+- Add a video ([1c7198c](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/1c7198c6499a06529903502ae960a5f313110540))
+
 # [1.2.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.1.2...v1.2.0) - (2024-04-02)
 
 ## 🐛 Bug Fixes
