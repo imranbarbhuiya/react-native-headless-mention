@@ -2837,28 +2837,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@favware/cliff-jumper@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@favware/cliff-jumper@npm:4.1.0"
+"@favware/cliff-jumper@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@favware/cliff-jumper@npm:5.0.0"
   dependencies:
     "@favware/colorette-spinner": "npm:^1.0.1"
     "@octokit/auth-token": "npm:^5.1.1"
     "@octokit/core": "npm:^6.1.2"
-    "@octokit/plugin-retry": "npm:^7.1.1"
+    "@octokit/plugin-retry": "npm:^7.1.2"
     "@sapphire/result": "npm:^2.6.6"
     "@sapphire/utilities": "npm:3.17.0"
     colorette: "npm:^2.0.20"
     commander: "npm:^12.1.0"
     conventional-recommended-bump: "npm:^10.0.0"
-    execa: "npm:^9.3.1"
-    git-cliff: "npm:^2.5.0"
+    execa: "npm:^9.4.0"
+    git-cliff: "npm:^2.6.1"
     js-yaml: "npm:^4.1.0"
     semver: "npm:^7.6.3"
     smol-toml: "npm:^1.3.0"
   bin:
     cj: ./dist/cli.js
     cliff-jumper: ./dist/cli.js
-  checksum: 10/aeaa6ff69ff5fc3302178436b5c61a97f4e31544c0451fe8787fa14f8ab847e30971a108c56437be2a9642ad072030e5b8c1177769bb6781b2a73c4ca9b8895d
+  checksum: 10/2a5ca21bf2af63d30ab146f3f2ae67728b665dc6a6d5fef5f75cd63ba6bc2b9e6645ede48452bc706513b1638c65347b8d9d186d265f0e98d3d5189b8f6b3b19
   languageName: node
   linkType: hard
 
@@ -3264,16 +3264,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/plugin-retry@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "@octokit/plugin-retry@npm:7.1.1"
+"@octokit/plugin-retry@npm:^7.1.2":
+  version: 7.1.2
+  resolution: "@octokit/plugin-retry@npm:7.1.2"
   dependencies:
     "@octokit/request-error": "npm:^6.0.0"
     "@octokit/types": "npm:^13.0.0"
     bottleneck: "npm:^2.15.3"
   peerDependencies:
     "@octokit/core": ">=6"
-  checksum: 10/ff7d2f0b45e61ff688c213ad28670fceffa8d56603850beabab21cbb79021d91d8bf40cdc2062949eeb6b031c6e5ad39bcbbc40b0caa7924c81d3c90b8fb0843
+  checksum: 10/adb2caa0785a451f86c9a25709d8f5e53ba6fac922052329a420526bba59764ecf469edc03f90397a32e1156968fe6bc2fc897fa2371a2263bacba2e559ba249
   languageName: node
   linkType: hard
 
@@ -7583,9 +7583,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:^9.3.1":
-  version: 9.4.0
-  resolution: "execa@npm:9.4.0"
+"execa@npm:^9.4.0":
+  version: 9.4.1
+  resolution: "execa@npm:9.4.1"
   dependencies:
     "@sindresorhus/merge-streams": "npm:^4.0.0"
     cross-spawn: "npm:^7.0.3"
@@ -7599,7 +7599,7 @@ __metadata:
     signal-exit: "npm:^4.1.0"
     strip-final-newline: "npm:^4.0.0"
     yoctocolors: "npm:^2.0.0"
-  checksum: 10/a92be5d2b5baa84e6ef32fc38c620e1f4b5990399e88661563933ffbcd7be1ea28cc96bef059f14d45fee289061980c9452d2abb4786f4c6f492f04767387a67
+  checksum: 10/a9b4177049ffe3d998746b789f7cd22ffc5583f789c322d8fa7601f3f630b5b27b97df6e0223c0dfb04305c639e67cbb69a8375c2529b85f5e23c03081fd47c2
   languageName: node
   linkType: hard
 
@@ -8153,7 +8153,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"git-cliff@npm:^2.5.0":
+"git-cliff@npm:^2.6.1":
   version: 2.6.1
   resolution: "git-cliff@npm:2.6.1"
   dependencies:
@@ -11912,7 +11912,7 @@ __metadata:
     "@biomejs/biome": "npm:1.9.4"
     "@commitlint/cli": "npm:^19.5.0"
     "@commitlint/config-conventional": "npm:^19.5.0"
-    "@favware/cliff-jumper": "npm:^4.1.0"
+    "@favware/cliff-jumper": "npm:^5.0.0"
     "@favware/npm-deprecate": "npm:^1.0.7"
     "@types/diff": "npm:^5.2.3"
     "@types/node": "npm:^20.17.0"
