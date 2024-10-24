@@ -1,7 +1,6 @@
 import React, { type MutableRefObject, useMemo, useRef, useState } from 'react';
 import { type NativeSyntheticEvent, Text, TextInput, type TextInputSelectionChangeEventData, View } from 'react-native';
 
-import type { MentionInputProps, MentionPartType, Suggestion } from './lib/types';
 import {
 	generateValueFromPartsAndChangedText,
 	generateValueWithAddedSuggestion,
@@ -10,7 +9,9 @@ import {
 	parseValue,
 } from './lib/utils';
 
-export * from './lib/types';
+import type { MentionInputProps, MentionPartType, Suggestion } from './lib/types';
+
+export type * from './lib/types';
 export * from './lib/utils';
 
 export function Input({

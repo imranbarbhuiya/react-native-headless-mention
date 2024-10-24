@@ -1,9 +1,0 @@
-{
-	"root": true,
-	"extends": ["mahir/common", "mahir/node", "mahir/typescript", "mahir/edge"],
-	"ignorePatterns": ["**/dist/*"],
-	"rules": {
-		"unicorn/number-literal-case": "off",
-		"import/order": "off"
-	}
-}

@@ -1,4 +1,5 @@
 import { diffChars } from 'diff';
+
 import type { CharactersDiffChange, MentionData, MentionPartType, Part, PartType, Position, Suggestion } from './types';
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType =>
