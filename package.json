@@ -53,9 +53,9 @@
 		"@types/diff": "^6.0.0",
 		"@types/node": "^22.10.1",
 		"@types/react": "^18.3.12",
-		"@vitest/coverage-v8": "^2.1.6",
+		"@vitest/coverage-v8": "^2.1.8",
 		"cz-conventional-changelog": "^3.3.0",
-		"eslint": "^9.15.0",
+		"eslint": "^9.16.0",
 		"eslint-config-mahir": "^1.0.6",
 		"husky": "^9.1.7",
 		"lint-staged": "^15.2.10",
@@ -63,9 +63,9 @@
 		"react": "^18.3.1",
 		"react-native": "^0.76.3",
 		"tsup": "^8.3.5",
-		"typedoc": "^0.27.1",
+		"typedoc": "^0.27.2",
 		"typescript": "^5.7.2",
-		"vitest": "^2.1.6"
+		"vitest": "^2.1.8"
 	},
 	"files": [
 		"dist/**/*.js*",
