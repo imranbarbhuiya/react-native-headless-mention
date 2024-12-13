@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.2.4](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.3...v1.2.4) - (2024-12-13)
+
+## 🐛 Bug Fixes
+
+- Fix in new diff version ([0d90f97](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/0d90f97481a2565345c9cbd04253b2d7aeb19cca))
+- Use older diff version ([911b809](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/911b809a1d9dc2c388a29de2fcf805593fb816d4))
+
 # [1.2.3](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.2...v1.2.3) - (2024-12-13)
 
 ## 🐛 Bug Fixes
