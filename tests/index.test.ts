@@ -1,7 +1,13 @@
 import {
+	generateMentionPart,
+	generatePlainTextPart,
 	generateValueFromPartsAndChangedText,
 	generateValueWithAddedSuggestion,
+	getMentionDataFromRegExpMatchArray,
 	getMentionPartSuggestionKeywords,
+	getMentionValue,
+	getPartsInterval,
+	getValueFromParts,
 	isMentionPartType,
 	parseValue,
 } from '../src/lib/utils';
@@ -202,5 +208,130 @@ describe('Mention Input Tests', () => {
 		const final = parseValue('<@123><@456>', [mentionPartType]);
 		expect(final.plainText).toBe('@123@456');
 		expect(final.parts).toHaveLength(3); // First mention, empty text between mentions, second mention
+	});
+});
+
+describe('Utils Tests', () => {
+	describe('generatePlainTextPart and generateMentionPart', () => {
+		test('generatePlainTextPart with position offset', () => {
+			const part = generatePlainTextPart('hello', 5);
+			expect(part).toEqual({
+				text: 'hello',
+				position: {
+					start: 5,
+					end: 10
+				}
+			});
+		});
+
+		test('generateMentionPart with position offset', () => {
+			const mention = {
+				id: '123',
+				original: '<@123>',
+				trigger: '@'
+			};
+			const part = generateMentionPart(mentionPartType, mention, 5);
+			expect(part).toEqual({
+				text: '@123',
+				position: {
+					start: 5,
+					end: 9
+				},
+				partType: mentionPartType,
+				data: mention
+			});
+		});
+	});
+
+	describe('getValueFromParts', () => {
+		test('should concatenate parts correctly', () => {
+			const parts = [
+				generatePlainTextPart('Hello '),
+				generateMentionPart(mentionPartType, { id: '123', original: '<@123>', trigger: '@' }),
+				generatePlainTextPart('!')
+			];
+			expect(getValueFromParts(parts)).toBe('Hello <@123>!');
+		});
+	});
+
+	describe('getMentionValue', () => {
+		test('should format mention value correctly', () => {
+			const suggestion = { id: '123', display: 'John' };
+			expect(getMentionValue('@', suggestion)).toBe('<@123>');
+		});
+	});
+
+	describe('getPartsInterval', () => {
+		test('should handle empty parts array', () => {
+			const result = getPartsInterval([], 0, 5);
+			expect(result).toEqual([]);
+		});
+
+		test('should handle single part interval', () => {
+			const parts = [generatePlainTextPart('Hello')];
+			const result = getPartsInterval(parts, 0, 5);
+			expect(result).toHaveLength(1);
+			expect(result[0].text).toBe('Hello');
+		});
+
+		test('should handle partial part interval', () => {
+			const parts = [generatePlainTextPart('Hello world')];
+			const result = getPartsInterval(parts, 0, 5);
+			expect(result).toHaveLength(1);
+			expect(result[0].text).toBe('Hello');
+		});
+	});
+
+	describe('getMentionDataFromRegExpMatchArray', () => {
+		test('should extract mention data from regex match with groups', () => {
+			const match = /<(?<trigger>@)(?<id>\d+)>/.exec('<@123>');
+			const result = getMentionDataFromRegExpMatchArray(match!);
+			expect(result).toEqual({
+				id: '123',
+				trigger: '@',
+				original: '<@123>',
+				result: match
+			});
+		});
+
+		test('should handle regex match without groups', () => {
+			// eslint-disable-next-line prefer-named-capture-group
+			const regex = /<(@)(\d+)>/;
+			const match = regex.exec('<@123>');
+			const result = getMentionDataFromRegExpMatchArray(match!);
+			expect(result).toEqual({
+				id: '123',
+				trigger: '@',
+				original: '<@123>',
+				result: match
+			});
+		});
+	});
+
+	describe('parseValue edge cases', () => {
+		test('should handle multiple part types with no matches', () => {
+			const hashtagPartType: PartType = {
+				pattern: /#[a-z]+/g
+			};
+			const result = parseValue('plain text', [hashtagPartType, mentionPartType]);
+			expect(result.plainText).toBe('plain text');
+			expect(result.parts).toHaveLength(1);
+		});
+
+		test('should handle regex pattern part type', () => {
+			const urlPartType: PartType = {
+				pattern: /https?:\/\/\S+/g
+			};
+			const result = parseValue('Visit https://example.com', [urlPartType]);
+			expect(result.parts).toHaveLength(2);
+			expect(result.parts[1].text).toBe('https://example.com');
+		});
+
+		test('should handle multiple mentions with text between', () => {
+			const text = 'Hello <@123> and <@456>';
+			const result = parseValue(text, [mentionPartType]);
+			expect(result.parts).toHaveLength(4);
+			expect(result.plainText).toBe('Hello @123 and @456');
+		});
 	});
 });

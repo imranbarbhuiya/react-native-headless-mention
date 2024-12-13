@@ -10,6 +10,8 @@ const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: bool
 		cursor >= one.position.start && isIncludeEnd ? cursor <= one.position.end : cursor < one.position.end,
 	);
 
+const getStringLength = (str: string): number => [...str].length;
+
 /**
  * Method for generating part for plain text
  *
@@ -20,7 +22,7 @@ const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
 	text,
 	position: {
 		start: positionOffset,
-		end: positionOffset + text.length,
+		end: positionOffset + getStringLength(text),
 	},
 });
 
@@ -38,7 +40,7 @@ const generateMentionPart = (mentionPartType: MentionPartType, mention: MentionD
 		text,
 		position: {
 			start: positionOffset,
-			end: positionOffset + text.length,
+			end: positionOffset + getStringLength(text),
 		},
 		partType: mentionPartType,
 		data: mention,
@@ -60,7 +62,7 @@ const getValueFromParts = (parts: Part[]) => parts.map((item) => (item.data ? it
  */
 const getMentionValue = (trigger: string, suggestion: Suggestion) => `<${trigger}${suggestion.id}>`;
 
-const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
+export const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
 	const newCursor = cursor + count;
 
 	const currentPartIndex = getPartIndexByCursor(parts, cursor);
@@ -226,12 +228,12 @@ const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, p
 	text: result[0],
 	position: {
 		start: positionOffset,
-		end: positionOffset + result[0].length,
+		end: positionOffset + getStringLength(result[0]),
 	},
 	partType,
 });
 
-const getMentionDataFromRegExpMatchArray = (arr: RegExpMatchArray): MentionData => {
+export const getMentionDataFromRegExpMatchArray = (arr: RegExpMatchArray): MentionData => {
 	const original = arr[0];
 	const groups = arr.groups;
 
