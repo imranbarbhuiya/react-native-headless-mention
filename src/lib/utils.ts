@@ -142,7 +142,7 @@ const generateValueFromPartsAndChangedText = (
 	originalText: string,
 	changedText: string,
 ): [string, Part[]] => {
-	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
+	const changes = diffChars(originalText, changedText, ) as CharactersDiffChange[];
 	let newParts: Part[] = [];
 
 	let cursor = 0;
@@ -150,7 +150,7 @@ const generateValueFromPartsAndChangedText = (
 	for (const change of changes) {
 		switch (true) {
 			case change.removed: {
-				cursor += change.count;
+				cursor += change.value.length;
 
 				break;
 			}
@@ -161,9 +161,9 @@ const generateValueFromPartsAndChangedText = (
 			}
 
 			default: {
-				if (change.count !== 0) {
-					newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
-					cursor += change.count;
+				if (change.value.length !== 0) {
+					newParts = newParts.concat(getPartsInterval(parts, cursor, change.value.length));
+					cursor += change.value.length;
 				}
 
 				break;
@@ -226,7 +226,7 @@ const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, p
 	text: result[0],
 	position: {
 		start: positionOffset,
-		end: positionOffset + (result[0]).length,
+		end: positionOffset + result[0].length,
 	},
 	partType,
 });

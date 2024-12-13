@@ -38,7 +38,7 @@
 		"tag"
 	],
 	"dependencies": {
-		"diff": "5.2.0"
+		"diff": "7.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0",
@@ -51,19 +51,19 @@
 		"@favware/cliff-jumper": "^5.0.0",
 		"@favware/npm-deprecate": "^2.0.0",
 		"@types/diff": "^6.0.0",
-		"@types/node": "^22.10.1",
+		"@types/node": "^22.10.2",
 		"@types/react": "^19.0.1",
 		"@vitest/coverage-v8": "^2.1.8",
 		"cz-conventional-changelog": "^3.3.0",
 		"eslint": "^9.16.0",
 		"eslint-config-mahir": "^1.0.7",
 		"husky": "^9.1.7",
-		"lint-staged": "^15.2.10",
+		"lint-staged": "^15.2.11",
 		"pinst": "^3.0.0",
 		"react": "^19.0.0",
-		"react-native": "^0.76.4",
+		"react-native": "^0.76.5",
 		"tsup": "^8.3.5",
-		"typedoc": "^0.27.3",
+		"typedoc": "^0.27.4",
 		"typescript": "^5.7.2",
 		"vitest": "^2.1.8"
 	},
