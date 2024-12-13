@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [1.2.3](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.2...v1.2.3) - (2024-12-13)
+
+## 🐛 Bug Fixes
+
+- Should handle cursor position properly for emoji input ([fe94ba9](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/fe94ba93b99f68e69fa876b39701752f0559e257))
+
+## 🧪 Testing
+
+- Add tests ([bebc8a2](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/bebc8a2a95f93a5a82410f51f841b15cd4b8a42c))
+
 # [1.2.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.0...v1.2.1) - (2024-10-24)
 
 ## 🐛 Bug Fixes
