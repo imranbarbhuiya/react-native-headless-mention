@@ -219,8 +219,8 @@ describe('Utils Tests', () => {
 				text: 'hello',
 				position: {
 					start: 5,
-					end: 10
-				}
+					end: 10,
+				},
 			});
 		});
 
@@ -228,17 +228,17 @@ describe('Utils Tests', () => {
 			const mention = {
 				id: '123',
 				original: '<@123>',
-				trigger: '@'
+				trigger: '@',
 			};
 			const part = generateMentionPart(mentionPartType, mention, 5);
 			expect(part).toEqual({
 				text: '@123',
 				position: {
 					start: 5,
-					end: 9
+					end: 9,
 				},
 				partType: mentionPartType,
-				data: mention
+				data: mention,
 			});
 		});
 	});
@@ -248,7 +248,7 @@ describe('Utils Tests', () => {
 			const parts = [
 				generatePlainTextPart('Hello '),
 				generateMentionPart(mentionPartType, { id: '123', original: '<@123>', trigger: '@' }),
-				generatePlainTextPart('!')
+				generatePlainTextPart('!'),
 			];
 			expect(getValueFromParts(parts)).toBe('Hello <@123>!');
 		});
@@ -290,7 +290,7 @@ describe('Utils Tests', () => {
 				id: '123',
 				trigger: '@',
 				original: '<@123>',
-				result: match
+				result: match,
 			});
 		});
 
@@ -303,7 +303,7 @@ describe('Utils Tests', () => {
 				id: '123',
 				trigger: '@',
 				original: '<@123>',
-				result: match
+				result: match,
 			});
 		});
 	});
@@ -311,7 +311,7 @@ describe('Utils Tests', () => {
 	describe('parseValue edge cases', () => {
 		test('should handle multiple part types with no matches', () => {
 			const hashtagPartType: PartType = {
-				pattern: /#[a-z]+/g
+				pattern: /#[a-z]+/g,
 			};
 			const result = parseValue('plain text', [hashtagPartType, mentionPartType]);
 			expect(result.plainText).toBe('plain text');
@@ -320,7 +320,7 @@ describe('Utils Tests', () => {
 
 		test('should handle regex pattern part type', () => {
 			const urlPartType: PartType = {
-				pattern: /https?:\/\/\S+/g
+				pattern: /https?:\/\/\S+/g,
 			};
 			const result = parseValue('Visit https://example.com', [urlPartType]);
 			expect(result.parts).toHaveLength(2);
@@ -332,6 +332,48 @@ describe('Utils Tests', () => {
 			const result = parseValue(text, [mentionPartType]);
 			expect(result.parts).toHaveLength(4);
 			expect(result.plainText).toBe('Hello @123 and @456');
+		});
+	});
+
+	describe('Emoji handling', () => {
+		test('should maintain emoji integrity when typing after it', () => {
+			// Start with text containing emoji
+			const { parts, plainText } = parseValue('Hello 👋 ', [mentionPartType]);
+			expect(plainText).toBe('Hello 👋 ');
+
+			const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello 👋 world');
+			expect(value).toBe('Hello 👋 world');
+
+			expect(value.includes('👋')).toBeTruthy();
+		});
+
+		test('should correctly handle backspace with emoji', () => {
+			// Start with text containing emoji
+			const { parts, plainText } = parseValue('Hello 👋 world', [mentionPartType]);
+
+			// Backspace one character after emoji
+			const [value1] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello 👋 worl');
+			expect(value1).toBe('Hello 👋 worl');
+
+			// Verify emoji is still intact
+			expect([...value1].length).toBe([...plainText].length - 1);
+
+			// Backspace the emoji
+			const [value2] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello world');
+			expect(value2).toBe('Hello world');
+		});
+
+		test('should handle multiple emojis correctly', () => {
+			// Start with text containing multiple emojis
+			const { parts, plainText } = parseValue('Hello 👋 🌎', [mentionPartType]);
+
+			// Add text between emojis
+			const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello 👋 beautiful 🌎');
+			expect(value).toBe('Hello 👋 beautiful 🌎');
+
+			// Verify both emojis are intact
+			const emojiCount = [...value].filter((char) => /\p{Emoji}/u.test(char)).length;
+			expect(emojiCount).toBe(2);
 		});
 	});
 });

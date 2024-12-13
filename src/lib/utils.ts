@@ -10,8 +10,6 @@ const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: bool
 		cursor >= one.position.start && isIncludeEnd ? cursor <= one.position.end : cursor < one.position.end,
 	);
 
-const getStringLength = (str: string): number => [...str].length;
-
 /**
  * Method for generating part for plain text
  *
@@ -22,7 +20,7 @@ const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
 	text,
 	position: {
 		start: positionOffset,
-		end: positionOffset + getStringLength(text),
+		end: positionOffset + text.length,
 	},
 });
 
@@ -40,7 +38,7 @@ const generateMentionPart = (mentionPartType: MentionPartType, mention: MentionD
 		text,
 		position: {
 			start: positionOffset,
-			end: positionOffset + getStringLength(text),
+			end: positionOffset + text.length,
 		},
 		partType: mentionPartType,
 		data: mention,
@@ -228,7 +226,7 @@ const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, p
 	text: result[0],
 	position: {
 		start: positionOffset,
-		end: positionOffset + getStringLength(result[0]),
+		end: positionOffset + (result[0]).length,
 	},
 	partType,
 });
