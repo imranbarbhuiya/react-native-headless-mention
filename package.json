@@ -58,7 +58,7 @@
 		"eslint": "^9.26.0",
 		"eslint-config-mahir": "^1.0.7",
 		"husky": "^9.1.7",
-		"lint-staged": "^15.5.2",
+		"lint-staged": "^16.0.0",
 		"pinst": "^3.0.0",
 		"react": "^19.1.0",
 		"react-native": "^0.79.2",
