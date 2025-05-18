@@ -3204,10 +3204,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/diff@npm:^7.0.2":
-  version: 7.0.2
-  resolution: "@types/diff@npm:7.0.2"
-  checksum: 10/50965189d8eb8a03e0cdf0f0146170733bc649fcb26633ef309d2a8d3b5365f17581d1d092630487aaae40ef5bc17c174be744c4a6aa404bde66704d0a032863
+"@types/diff@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@types/diff@npm:8.0.0"
+  dependencies:
+    diff: "npm:*"
+  checksum: 10/9a7210d664898457db83d463f2586b2b4883013772a84879dfd6a9e2d3c8dc3b087d90e552d28adf982ca6e8635e5a9b47c8dc21507643a01af6b0797a8cec68
   languageName: node
   linkType: hard
 
@@ -5285,10 +5287,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:7.0.0":
-  version: 7.0.0
-  resolution: "diff@npm:7.0.0"
-  checksum: 10/e9b8e48d054c9c0c093c65ce8e2637af94b35f2427001607b14e5e0589e534ea3413a7f91ebe6d7c5a1494ace49cb7c7c3972f442ddd96a4767ff091999a082e
+"diff@npm:*, diff@npm:8.0.1":
+  version: 8.0.1
+  resolution: "diff@npm:8.0.1"
+  checksum: 10/1f56c913dc48ad85dcd83ac374d43b0acda6c4a25dc32660f65988fcd2c2f2d8f6cc9cddb58a268513e0bf1bff139b028c42cabec5dfeeb7e0af68830ce8787a
   languageName: node
   linkType: hard
 
@@ -10805,12 +10807,12 @@ __metadata:
     "@commitlint/config-conventional": "npm:^19.8.1"
     "@favware/cliff-jumper": "npm:^6.0.0"
     "@favware/npm-deprecate": "npm:^2.0.0"
-    "@types/diff": "npm:^7.0.2"
+    "@types/diff": "npm:^8.0.0"
     "@types/node": "npm:^22.15.18"
     "@types/react": "npm:^19.1.4"
     "@vitest/coverage-v8": "npm:^3.1.3"
     cz-conventional-changelog: "npm:^3.3.0"
-    diff: "npm:7.0.0"
+    diff: "npm:8.0.1"
     eslint: "npm:^9.27.0"
     eslint-config-mahir: "npm:^1.0.7"
     husky: "npm:^9.1.7"
