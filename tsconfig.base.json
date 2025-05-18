@@ -16,7 +16,8 @@
 		"lib": ["es2021"],
 		"declaration": true,
 		"outDir": "dist",
-		"jsx": "react-native"
+		"jsx": "react-native",
+		"skipLibCheck": true
 	},
 	"includes": ["src/**/*.ts"]
 }
