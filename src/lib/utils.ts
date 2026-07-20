@@ -142,7 +142,7 @@ const generateValueFromPartsAndChangedText = (
 	originalText: string,
 	changedText: string,
 ): [string, Part[]] => {
-	const changes = diffChars(originalText, changedText, ) as CharactersDiffChange[];
+	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
 	let newParts: Part[] = [];
 
 	let cursor = 0;

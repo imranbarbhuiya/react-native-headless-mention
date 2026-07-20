@@ -1,8 +1,6 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": false
 	},
@@ -11,7 +9,7 @@
 		"lineEnding": "lf",
 		"indentWidth": 4,
 		"indentStyle": "tab",
-		"ignore": ["package.json"]
+		"includes": ["**", "!**/package.json"]
 	},
 	"javascript": {
 		"formatter": {
@@ -22,7 +20,13 @@
 	},
 	"overrides": [
 		{
-			"include": [".devcontainer/**", ".vscode/**", "**/tsconfig*.json", "**/.eslintrc.json", "**/.swcrc"],
+			"includes": [
+				"**/.devcontainer/**",
+				"**/.vscode/**",
+				"**/tsconfig*.json",
+				"**/.eslintrc.json",
+				"**/.swcrc/**"
+			],
 			"json": {
 				"parser": {
 					"allowComments": true,
@@ -30,14 +34,6 @@
 				}
 			}
 		},
-		{
-			"include": ["packages/web-api/**"],
-			"javascript": {
-				"parser": {
-					"unsafeParameterDecoratorsEnabled": true
-				}
-			}
-		}
 	],
 	"vcs": {
 		"enabled": true,

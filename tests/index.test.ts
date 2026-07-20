@@ -106,50 +106,36 @@ describe('parseValue', () => {
 	});
 });
 
+const applyTextChange = (value: string, nextPlainText: string, partTypes: PartType[] = [mentionPartType]) => {
+	const { parts, plainText } = parseValue(value, partTypes);
+	const [nextValue] = generateValueFromPartsAndChangedText(parts, plainText, nextPlainText);
+	return nextValue;
+};
+
 describe('Mention Input Tests', () => {
 	test('Basic text input flow', () => {
-		// Initial empty state
-		let { parts, plainText } = parseValue('', [mentionPartType]);
-		expect(plainText).toBe('');
-
-		// Add simple text
-		const [value1, newParts1] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello ');
-		expect(value1).toBe('Hello ');
-		parts = newParts1;
-		plainText = 'Hello ';
-
-		// Add more text
-		const [value2] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello world');
-		expect(value2).toBe('Hello world');
+		let value = '';
+		expect(parseValue(value, [mentionPartType]).plainText).toBe('');
+		value = applyTextChange(value, 'Hello ');
+		expect(value).toBe('Hello ');
+		value = applyTextChange(value, 'Hello world');
+		expect(value).toBe('Hello world');
 	});
 
 	test('Mention flow', () => {
-		// Start with some text
-		let { parts, plainText } = parseValue('Hello ', [mentionPartType]);
-		expect(plainText).toBe('Hello ');
-
-		// Add mention trigger
-		const [value1, newParts1] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello @');
-		parts = newParts1;
-		plainText = 'Hello @';
-		expect(value1).toBe('Hello @');
-
-		// Get suggestion keywords when cursor is right after @
+		let value = 'Hello ';
+		value = applyTextChange(value, 'Hello @');
+		expect(value).toBe('Hello @');
+		value = applyTextChange(value, 'Hello @jo');
+		expect(value).toBe('Hello @jo');
+		const { parts, plainText } = parseValue(value, [mentionPartType]);
 		const keywords = getMentionPartSuggestionKeywords(
 			parts,
 			plainText,
 			{ start: plainText.length, end: plainText.length },
 			[mentionPartType],
 		);
-		expect(keywords['@']).toBeUndefined();
-
-		// Type partial mention
-		const [value2, newParts2] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello @jo');
-		parts = newParts2;
-		plainText = 'Hello @jo';
-		expect(value2).toBe('jo');
-
-		// Complete mention
+		expect(keywords['@']).toBe('jo');
 		const newValue = generateValueWithAddedSuggestion(
 			parts,
 			mentionPartType,
@@ -157,57 +143,186 @@ describe('Mention Input Tests', () => {
 			{ start: plainText.length, end: plainText.length },
 			{ id: '123' },
 		);
-		expect(newValue).toBeUndefined();
-
-		// Parse completed mention
-		const { parts: finalParts, plainText: finalPlainText } = parseValue('Hello <@123> ', [mentionPartType]);
+		expect(newValue).toBe('Hello <@123>');
+		const { parts: finalParts, plainText: finalPlainText } = parseValue(`${newValue} `, [mentionPartType]);
 		expect(finalPlainText).toBe('Hello @123 ');
-		expect(finalParts).toHaveLength(3); // "Hello ", mention part, " "
+		expect(finalParts).toHaveLength(3);
 	});
 
 	test('Backspace behavior', () => {
-		// Start with text and mention
 		const { parts, plainText } = parseValue('Hello <@123> world', [mentionPartType]);
 		expect(plainText).toBe('Hello @123 world');
-
-		// Backspace at the end
 		const [value1] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello @123 worl');
-		expect(value1).toBe('Hello <@123> worl'); // Should maintain mention markup
-
-		// Backspace into mention
+		expect(value1).toBe('Hello <@123> worl');
 		const [value2] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello @12');
-		expect(value2).toBe('Hello @12'); // When mention is broken, it becomes plain text
+		expect(value2).toBe('Hello @12');
 	});
 
 	test('Multiple mentions', () => {
-		// Start empty
 		const { parts, plainText } = parseValue('', [mentionPartType]);
-
-		// Add first mention
-		let newValue = generateValueWithAddedSuggestion(
+		let value = generateValueWithAddedSuggestion(
 			parts,
 			mentionPartType,
 			plainText,
 			{ start: 0, end: 0 },
 			{ id: '123' },
 		);
-		expect(newValue).toBe('<@123>');
-
-		// Parse result and add second mention
-		const result = parseValue(newValue!, [mentionPartType]);
-		newValue = generateValueWithAddedSuggestion(
+		expect(value).toBe('<@123>');
+		value = applyTextChange(value!, '@123 @ja');
+		expect(value).toBe('<@123> @ja');
+		const result = parseValue(value, [mentionPartType]);
+		value = generateValueWithAddedSuggestion(
 			result.parts,
 			mentionPartType,
 			result.plainText,
 			{ start: result.plainText.length, end: result.plainText.length },
 			{ id: '456' },
 		);
-		expect(newValue).toBe('<@456>');
+		expect(value).toBe('<@123> <@456>');
+		const final = parseValue(value!, [mentionPartType]);
+		expect(final.plainText).toBe('@123 @456');
+		expect(final.parts).toHaveLength(3);
+	});
+});
 
-		// Final parse to verify structure
-		const final = parseValue('<@123><@456>', [mentionPartType]);
-		expect(final.plainText).toBe('@123@456');
-		expect(final.parts).toHaveLength(3); // First mention, empty text between mentions, second mention
+describe('generateValueFromPartsAndChangedText', () => {
+	test('preserves mentions when appending plain text', () => {
+		const { parts, plainText } = parseValue('Hi <@123>', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hi @123!');
+		expect(value).toBe('Hi <@123>!');
+	});
+
+	test('preserves mentions when prepending plain text', () => {
+		const { parts, plainText } = parseValue('Hi <@123>', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hey Hi @123');
+		expect(value).toBe('Hey Hi <@123>');
+	});
+
+	test('preserves mentions when inserting text between parts', () => {
+		const { parts, plainText } = parseValue('Hello <@123> world', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello @123 beautiful world');
+		expect(value).toBe('Hello <@123> beautiful world');
+	});
+
+	test('preserves mentions when deleting text outside the mention', () => {
+		const { parts, plainText } = parseValue('Hello <@123> world', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Helo @123 world');
+		expect(value).toBe('Helo <@123> world');
+	});
+
+	test('converts mention to plain text when mention body is edited', () => {
+		const { parts, plainText } = parseValue('Hello <@123> world', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'Hello X world');
+		expect(value).toBe('Hello X world');
+	});
+
+	test('handles clearing all text', () => {
+		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, '');
+		expect(value).toBe('');
+	});
+
+	test('handles no-op text change', () => {
+		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, plainText);
+		expect(value).toBe('Hello <@123>');
+	});
+
+	test('handles middle replacement without mentions', () => {
+		const { parts, plainText } = parseValue('abcdef', [mentionPartType]);
+		const [value] = generateValueFromPartsAndChangedText(parts, plainText, 'abXYef');
+		expect(value).toBe('abXYef');
+	});
+
+	test('keeps multi-code-point emoji intact across edits', () => {
+		const family = '👨‍👩‍👧‍👦';
+		const skinTone = '👋🏻';
+		expect(applyTextChange(`Hi ${family} `, `Hi ${family} there`)).toBe(`Hi ${family} there`);
+		expect(applyTextChange(skinTone, `${skinTone} hi`)).toBe(`${skinTone} hi`);
+		expect(applyTextChange(`👋 <@123>`, `👋👋 @123`)).toBe(`👋👋 <@123>`);
+		expect(applyTextChange(`👋 <@123>`, `👋 @123!`)).toBe(`👋 <@123>!`);
+	});
+});
+
+describe('getMentionPartSuggestionKeywords', () => {
+	test('returns keyword after trigger', () => {
+		const { parts, plainText } = parseValue('Hello @jo', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBe('jo');
+	});
+
+	test('allows spaces within allowedSpacesCount', () => {
+		const { parts, plainText } = parseValue('Hello @john doe', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBe('john doe');
+	});
+
+	test('returns undefined for non-collapsed selection', () => {
+		const { parts, plainText } = parseValue('Hello @jo', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(parts, plainText, { start: 6, end: 9 }, [mentionPartType]);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('returns undefined when trigger has no leading whitespace', () => {
+		const { parts, plainText } = parseValue('Hello@jo', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('returns undefined when cursor is inside an existing mention', () => {
+		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBeUndefined();
+	});
+});
+
+describe('generateValueWithAddedSuggestion', () => {
+	test('inserts trailing space when insertSpaceAfterMention is enabled', () => {
+		const mentionWithSpace: MentionPartType = {
+			...mentionPartType,
+			insertSpaceAfterMention: true,
+		};
+		const { parts, plainText } = parseValue('Hello @jo', [mentionWithSpace]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionWithSpace,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			{ id: '1' },
+		);
+		expect(value).toBe('Hello <@1> ');
+	});
+
+	test('returns undefined when selection is outside parts', () => {
+		const { parts, plainText } = parseValue('Hello', [mentionPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionPartType,
+			plainText,
+			{ start: 100, end: 100 },
+			{ id: '1' },
+		);
+		expect(value).toBeUndefined();
 	});
 });
 
@@ -332,6 +447,25 @@ describe('Utils Tests', () => {
 			const result = parseValue(text, [mentionPartType]);
 			expect(result.parts).toHaveLength(4);
 			expect(result.plainText).toBe('Hello @123 and @456');
+		});
+
+		test('should route mismatched trigger matches to remaining part types', () => {
+			const sharedPattern = /<(?<trigger>[@#])(?<id>\d+)>/g;
+			const atMention: MentionPartType = {
+				trigger: '@',
+				pattern: sharedPattern,
+				getLabel: (mention) => `@${mention.id}`,
+			};
+			const hashMention: MentionPartType = {
+				trigger: '#',
+				pattern: sharedPattern,
+				getLabel: (mention) => `#${mention.id}`,
+			};
+			const result = parseValue('x <#9> y <@1>', [atMention, hashMention]);
+			expect(result.plainText).toBe('x #9 y @1');
+			expect(result.parts).toHaveLength(4);
+			expect(result.parts[1].data?.trigger).toBe('#');
+			expect(result.parts[3].data?.trigger).toBe('@');
 		});
 	});
 
