@@ -30,6 +30,17 @@ export function Input({
 
 	const { plainText, parts } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
 
+	const prevPlainTextRef = useRef(plainText);
+	const collapseToControlledEmptyRef = useRef(false);
+	if (prevPlainTextRef.current.length > 0 && plainText.length === 0) {
+		collapseToControlledEmptyRef.current = true;
+	}
+	if (plainText.length > 0) {
+		collapseToControlledEmptyRef.current = false;
+	}
+	prevPlainTextRef.current = plainText;
+	const useControlledEmpty = plainText.length === 0 && collapseToControlledEmptyRef.current;
+
 	const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
 		setSelection(event.nativeEvent.selection);
 
@@ -84,22 +95,25 @@ export function Input({
 			<Component
 				multiline
 				{...textInputProps}
+				{...(useControlledEmpty ? { value: '' } : {})}
 				ref={handleTextInputRef}
 				onChangeText={onChangeInput}
 				onSelectionChange={handleSelectionChange}
 				selection={selection}
 			>
-				<Text>
-					{parts.map(({ text, partType, data }, index) =>
-						partType ? (
-							<Text key={`${index}-${data?.trigger ?? 'pattern'}`} style={partType.textStyle}>
-								{text}
-							</Text>
-						) : (
-							<Text key={index}>{text}</Text>
-						),
-					)}
-				</Text>
+				{useControlledEmpty ? null : (
+					<Text>
+						{parts.map(({ text, partType, data }, index) =>
+							partType ? (
+								<Text key={`${index}-${data?.trigger ?? 'pattern'}`} style={partType.textStyle}>
+									{text}
+								</Text>
+							) : (
+								<Text key={index}>{text}</Text>
+							),
+						)}
+					</Text>
+				)}
 			</Component>
 			{(
 				partTypes.filter(
