@@ -196,7 +196,10 @@ export default function Campaigns() {
 -   `containerStyle` is removed along with the wrapper `View` that used to hold the suggestions. Wrap `Input` in your own `View` if you need it.
 -   `inputRef` and the rest of the `TextInput` props still work the same.
 
-Editing is also more careful with your mentions now: deleting or inserting text around a mention keeps it whole, where it could previously be dissolved into plain text.
+Two behaviour fixes come with it:
+
+-   Editing is more careful with your mentions: deleting or inserting text around a mention keeps it whole, where it could previously be dissolved into plain text.
+-   `allowedSpacesCount` is applied. It never was, so a keyword used to keep growing across any number of spaces and new lines. It defaults to `1`, which fits searching a `first last` name, and the keyword now ends at a new line or at one space too many.
 
 ```diff
 -<Input

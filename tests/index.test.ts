@@ -309,6 +309,63 @@ describe('getMentionPartSuggestionKeywords', () => {
 		expect(keywords['@']).toBeUndefined();
 	});
 
+	test('returns undefined when there are more spaces than allowed', () => {
+		const { parts, plainText } = parseValue('Hello @john doe smith', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('honours a custom allowedSpacesCount', () => {
+		const twoSpaces: MentionPartType = { ...mentionPartType, allowedSpacesCount: 2 };
+		const { parts, plainText } = parseValue('Hello @john doe smith', [twoSpaces]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[twoSpaces],
+		);
+		expect(keywords['@']).toBe('john doe smith');
+	});
+
+	test('returns undefined for any space when allowedSpacesCount is zero', () => {
+		const noSpaces: MentionPartType = { ...mentionPartType, allowedSpacesCount: 0 };
+		const { parts, plainText } = parseValue('Hello @john doe', [noSpaces]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[noSpaces],
+		);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('returns undefined when a new line separates the trigger from the cursor', () => {
+		const { parts, plainText } = parseValue('Hello @jo\nhn', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('still returns the keyword when the trigger is on its own line', () => {
+		const { parts, plainText } = parseValue('Hello\n@jo', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[mentionPartType],
+		);
+		expect(keywords['@']).toBe('jo');
+	});
+
 	test('returns undefined when cursor is inside an existing mention', () => {
 		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
 		const keywords = getMentionPartSuggestionKeywords(

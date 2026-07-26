@@ -135,15 +135,25 @@ const getMentionPartSuggestionKeywords = (
 			continue;
 
 		let spacesCount = 0;
+		let isKeywordEnded = false;
 		for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
-			if (plainText[cursor] === '\n') continue;
+			// A new line always ends the keyword, and so does one space too many
+			if (plainText[cursor] === '\n') {
+				isKeywordEnded = true;
+				break;
+			}
 
 			if (plainText[cursor] === ' ') {
 				spacesCount += 1;
 
-				if (spacesCount > allowedSpacesCount) continue;
+				if (spacesCount > allowedSpacesCount) {
+					isKeywordEnded = true;
+					break;
+				}
 			}
 		}
+
+		if (isKeywordEnded) continue;
 
 		keywordByTrigger[trigger] = plainText.slice(triggerIndex + 1, selection.end);
 	}
