@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [2.0.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v2.0.0...v2.0.1) - (2026-07-26)
+
+## 🐛 Bug Fixes
+
+- Input height doesnt reset on empty content ([37b432b](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/37b432bae58dc12a9b5e8d90a6238ec7fff6f1d4))
+
+# Changelog
+All notable changes to this project will be documented in this file.
+
 # [2.0.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.6...v2.0.0) - (2026-07-26)
 
 ## 🐛 Bug Fixes
