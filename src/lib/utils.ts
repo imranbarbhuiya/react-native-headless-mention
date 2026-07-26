@@ -86,10 +86,7 @@ export const getPartsInterval = (parts: Part[], cursor: number, count: number): 
 	else {
 		partsInterval.push(
 			generatePlainTextPart(
-				currentPart.text.slice(
-					cursor - currentPart.position.start,
-					newCursor - currentPart.position.start,
-				),
+				currentPart.text.slice(cursor - currentPart.position.start, newCursor - currentPart.position.start),
 			),
 		);
 	}
@@ -437,14 +434,14 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): {
 };
 
 export {
-	isMentionPartType,
-	getMentionPartSuggestionKeywords,
-	getSuggestions,
+	generateMentionPart,
+	generatePlainTextPart,
 	generateValueFromPartsAndChangedText,
 	generateValueWithAddedSuggestion,
-	generatePlainTextPart,
-	generateMentionPart,
+	getMentionPartSuggestionKeywords,
 	getMentionValue,
-	parseValue,
+	getSuggestions,
 	getValueFromParts,
+	isMentionPartType,
+	parseValue,
 };

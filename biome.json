@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"assist": { "actions": { "source": { "organizeImports": "off" } } },
 	"linter": {
 		"enabled": false
 	},
@@ -18,23 +18,6 @@
 			"quoteProperties": "asNeeded"
 		}
 	},
-	"overrides": [
-		{
-			"includes": [
-				"**/.devcontainer/**",
-				"**/.vscode/**",
-				"**/tsconfig*.json",
-				"**/.eslintrc.json",
-				"**/.swcrc/**"
-			],
-			"json": {
-				"parser": {
-					"allowComments": true,
-					"allowTrailingCommas": true
-				}
-			}
-		},
-	],
 	"vcs": {
 		"enabled": true,
 		"useIgnoreFile": true,

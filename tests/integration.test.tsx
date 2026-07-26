@@ -43,7 +43,11 @@ const Screen = ({ onValueChange }: { onValueChange?: (value: string) => void }) 
 					: users
 							.filter((one) => one.name.toLowerCase().includes(keyword.toLowerCase()))
 							.map((one) => (
-								<Pressable key={one.id} onPress={() => onSuggestionPress(one)} testID={`user-${one.id}`}>
+								<Pressable
+									key={one.id}
+									onPress={() => onSuggestionPress(one)}
+									testID={`user-${one.id}`}
+								>
 									<Text>{one.name}</Text>
 								</Pressable>
 							))}

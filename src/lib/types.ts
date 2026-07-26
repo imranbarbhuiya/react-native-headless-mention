@@ -246,17 +246,17 @@ type MentionInputProps = MentionInputControlProps &
 	};
 
 export type {
-	Suggestion,
-	MentionData,
 	CharactersDiffChange,
-	Selection as Position,
-	Part,
-	MentionSuggestionsProps,
-	MentionPartType,
-	PatternPartType,
-	PartType,
-	UseMentionOptions,
-	UseMentionResult,
+	MentionData,
 	MentionInputControlProps,
 	MentionInputProps,
+	MentionPartType,
+	MentionSuggestionsProps,
+	Part,
+	PartType,
+	PatternPartType,
+	Selection as Position,
+	Suggestion,
+	UseMentionOptions,
+	UseMentionResult,
 };

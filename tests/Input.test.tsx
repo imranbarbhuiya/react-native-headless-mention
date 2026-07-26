@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { createRef } from 'react';
+import { createRef, type Ref, useEffect, useImperativeHandle } from 'react';
 import { Text, TextInput } from 'react-native';
 
 import { Input } from '../src/index';
@@ -22,6 +22,17 @@ const boldPartType: PartType = {
 const partTypes: PartType[] = [mentionPartType, boldPartType];
 
 const CustomInput = (props: { testID?: string }) => <Text {...props}>custom</Text>;
+
+const clear = jest.fn();
+const mount = jest.fn();
+
+// Stands in for a TextInput, to watch what the Input does with the imperative handle
+const ClearableInput = ({ ref, ...props }: { ref?: Ref<{ clear: () => void }>; testID?: string }) => {
+	useImperativeHandle(ref, () => ({ clear }), []);
+	useEffect(() => mount(), []);
+
+	return <Text {...props}>clearable</Text>;
+};
 
 /**
  * Builds the props `useMention` would hand over for a given value.
@@ -127,6 +138,54 @@ describe('Input', () => {
 		await render(<Input {...inputProps('Hello', { inputRef })} />);
 
 		expect(inputRef).toHaveBeenCalled();
+	});
+
+	describe('resetting the height once the text is cleared', () => {
+		beforeEach(() => {
+			clear.mockClear();
+			mount.mockClear();
+		});
+
+		// Remounting the input is what used to make it lose the keyboard and jump on send
+		test('does not remount the input when the value is emptied', async () => {
+			const ref = createRef<TextInput>();
+			const { rerender } = await render(
+				<Input {...inputProps('Hello', { component: ClearableInput, inputRef: ref })} />,
+			);
+			const instance = ref.current;
+
+			await rerender(<Input {...inputProps('', { component: ClearableInput, inputRef: ref, value: '' })} />);
+			await rerender(<Input {...inputProps('Hi', { component: ClearableInput, inputRef: ref })} />);
+
+			expect(mount).toHaveBeenCalledTimes(1);
+			expect(ref.current).toBe(instance);
+		});
+
+		test('clears the native input when the value is emptied', async () => {
+			const { rerender } = await render(<Input {...inputProps('Hello', { component: ClearableInput })} />);
+
+			expect(clear).not.toHaveBeenCalled();
+
+			await rerender(<Input {...inputProps('', { component: ClearableInput, value: '' })} />);
+
+			expect(clear).toHaveBeenCalledTimes(1);
+		});
+
+		test('does not clear the native input while there is text', async () => {
+			const { rerender } = await render(<Input {...inputProps('Hello', { component: ClearableInput })} />);
+
+			await rerender(<Input {...inputProps('Hello there', { component: ClearableInput })} />);
+
+			expect(clear).not.toHaveBeenCalled();
+		});
+
+		test('does not clear the native input again once the text comes back', async () => {
+			const { rerender } = await render(<Input {...inputProps('Hello', { component: ClearableInput })} />);
+			await rerender(<Input {...inputProps('', { component: ClearableInput, value: '' })} />);
+			await rerender(<Input {...inputProps('Hi', { component: ClearableInput })} />);
+
+			expect(clear).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	test('renders a custom component instead of TextInput', async () => {
