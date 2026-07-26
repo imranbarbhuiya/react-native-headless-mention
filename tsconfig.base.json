@@ -1,23 +1,10 @@
 {
+	"extends": "@react-native/typescript-config",
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "commonjs",
-		"strict": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"noImplicitThis": true,
-		"alwaysStrict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
-		"moduleResolution": "node",
-		"esModuleInterop": true,
-		"lib": ["es2021"],
-		"declaration": true,
-		"outDir": "dist",
-		"jsx": "react-native",
-		"skipLibCheck": true
-	},
-	"includes": ["src/**/*.ts"]
+		"incremental": false
+	}
 }

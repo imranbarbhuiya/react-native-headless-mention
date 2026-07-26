@@ -19,7 +19,7 @@ export default [
 		languageOptions: {
 			parserOptions: {
 				projectService: {
-					allowDefaultProject: ['eslint.config.mjs', 'tsup.config.ts'],
+					allowDefaultProject: ['eslint.config.mjs', 'tsdown.config.ts', 'jest.config.mjs', 'babel.config.mjs'],
 					defaultProject: 'tsconfig.eslint.json',
 				},
 				tsconfigRootDir: import.meta.dirname,

@@ -1,6 +1,12 @@
 import type { Change } from 'diff';
-import type { ReactNode, Ref } from 'react';
-import type { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 'react-native';
+import type { Ref } from 'react';
+import type {
+	StyleProp,
+	TextInput,
+	TextInputProps,
+	TextInputSelectionChangeEvent,
+	TextStyle,
+} from 'react-native';
 
 interface Suggestion {
 	id: string;
@@ -31,8 +37,6 @@ interface MentionPartType {
 	insertSpaceAfterMention?: boolean;
 	// RegExp with global flag
 	pattern: RegExp;
-	renderPosition?: 'bottom' | 'top';
-	renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 	textStyle?: StyleProp<TextStyle>;
 	trigger: string;
 }
@@ -52,14 +56,36 @@ interface Part {
 	text: string;
 }
 
-type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
-	component?: React.ElementType;
-	containerStyle?: StyleProp<ViewStyle>;
-	inputRef?: Ref<TextInput>;
+interface UseMentionOptions {
 	onChange: (value: string, parts: Part[]) => any;
+	onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 	partTypes?: PartType[];
 	value: string;
-};
+}
+
+/**
+ * Props returned by `useMention` which are meant to be spread onto `Input`.
+ */
+interface MentionInputControlProps {
+	onChangeText: (text: string) => void;
+	onSelectionChange: (event: TextInputSelectionChangeEvent) => void;
+	parts: Part[];
+	selection: Selection;
+	value?: string;
+}
+
+interface UseMentionResult {
+	inputProps: MentionInputControlProps;
+	parts: Part[];
+	plainText: string;
+	suggestions: { [trigger: string]: MentionSuggestionsProps };
+}
+
+type MentionInputProps = MentionInputControlProps &
+	Omit<TextInputProps, 'children' | 'onChange' | 'onChangeText' | 'onSelectionChange' | 'selection' | 'value'> & {
+		component?: React.ElementType;
+		inputRef?: Ref<TextInput>;
+	};
 
 export type {
 	Suggestion,
@@ -71,5 +97,8 @@ export type {
 	MentionPartType,
 	PatternPartType,
 	PartType,
+	UseMentionOptions,
+	UseMentionResult,
+	MentionInputControlProps,
 	MentionInputProps,
 };

@@ -1,6 +1,15 @@
 import { diffChars } from 'diff';
 
-import type { CharactersDiffChange, MentionData, MentionPartType, Part, PartType, Position, Suggestion } from './types';
+import type {
+	CharactersDiffChange,
+	MentionData,
+	MentionPartType,
+	MentionSuggestionsProps,
+	Part,
+	PartType,
+	Position,
+	Suggestion,
+} from './types';
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType =>
 	Boolean('trigger' in partType && partType.trigger);
@@ -76,7 +85,12 @@ export const getPartsInterval = (parts: Part[], cursor: number, count: number): 
 	if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) partsInterval.push(currentPart);
 	else {
 		partsInterval.push(
-			generatePlainTextPart(currentPart.text.slice(cursor - currentPart.position.start, newCursor)),
+			generatePlainTextPart(
+				currentPart.text.slice(
+					cursor - currentPart.position.start,
+					newCursor - currentPart.position.start,
+				),
+			),
 		);
 	}
 
@@ -137,12 +151,62 @@ const getMentionPartSuggestionKeywords = (
 	return keywordByTrigger;
 };
 
+/**
+ * Method for diffing the text of an edit
+ *
+ * A keystroke, a backspace or a paste only ever adds or removes one run of characters, which the
+ * common prefix and suffix already describe. Diffing those character by character means tokenizing
+ * the whole value on every edit, so it's only done for the replacements the affixes can't describe,
+ * where the character diff is what keeps the mentions in between the changed runs intact.
+ *
+ * @param originalText
+ * @param changedText
+ */
+const getTextChanges = (originalText: string, changedText: string): CharactersDiffChange[] => {
+	const maxAffixLength = Math.min(originalText.length, changedText.length);
+
+	let prefixLength = 0;
+	while (prefixLength < maxAffixLength && originalText[prefixLength] === changedText[prefixLength]) prefixLength += 1;
+
+	let suffixLength = 0;
+	while (
+		suffixLength < maxAffixLength - prefixLength &&
+		originalText[originalText.length - 1 - suffixLength] === changedText[changedText.length - 1 - suffixLength]
+	)
+		suffixLength += 1;
+
+	const removed = originalText.slice(prefixLength, originalText.length - suffixLength);
+	const added = changedText.slice(prefixLength, changedText.length - suffixLength);
+
+	if (removed.length > 0 && added.length > 0) return diffChars(originalText, changedText);
+
+	const changes: CharactersDiffChange[] = [];
+
+	if (prefixLength > 0)
+		changes.push({ value: originalText.slice(0, prefixLength), count: prefixLength, added: false, removed: false });
+
+	if (removed.length > 0) changes.push({ value: removed, count: removed.length, added: false, removed: true });
+
+	if (added.length > 0) changes.push({ value: added, count: added.length, added: true, removed: false });
+
+	if (suffixLength > 0) {
+		changes.push({
+			value: originalText.slice(originalText.length - suffixLength),
+			count: suffixLength,
+			added: false,
+			removed: false,
+		});
+	}
+
+	return changes;
+};
+
 const generateValueFromPartsAndChangedText = (
 	parts: Part[],
 	originalText: string,
 	changedText: string,
 ): [string, Part[]] => {
-	const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
+	const changes = getTextChanges(originalText, changedText);
 	let newParts: Part[] = [];
 
 	let cursor = 0;
@@ -220,6 +284,48 @@ const generateValueWithAddedSuggestion = (
 
 		...parts.slice(currentPartIndex + 1),
 	]);
+};
+
+/**
+ * Method for generating the suggestions state of every mention part type
+ *
+ * @param parts
+ * @param plainText
+ * @param selection
+ * @param partTypes
+ * @param onChange - called with the new value when a suggestion is applied
+ * @returns the keyword being typed and the press handler, keyed by trigger
+ */
+const getSuggestions = (
+	parts: Part[],
+	plainText: string,
+	selection: Position,
+	partTypes: PartType[],
+	onChange: (value: string, parts: Part[]) => any,
+): { [trigger: string]: MentionSuggestionsProps } => {
+	const keywordByTrigger = getMentionPartSuggestionKeywords(parts, plainText, selection, partTypes);
+
+	const suggestions: { [trigger: string]: MentionSuggestionsProps } = {};
+
+	for (const mentionType of partTypes.filter(isMentionPartType)) {
+		const keyword = keywordByTrigger[mentionType.trigger];
+
+		suggestions[mentionType.trigger] = {
+			keyword,
+			onSuggestionPress: (suggestion) => {
+				// Without a keyword there is no trigger to replace, so applying the suggestion would wipe the text
+				if (keyword === undefined) return;
+
+				const newValue = generateValueWithAddedSuggestion(parts, mentionType, plainText, selection, suggestion);
+
+				if (!newValue) return;
+
+				onChange(newValue, parts);
+			},
+		};
+	}
+
+	return suggestions;
 };
 
 const generateRegexResultPart = (partType: PartType, result: RegExpMatchArray, positionOffset = 0): Part => ({
@@ -323,6 +429,7 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): {
 export {
 	isMentionPartType,
 	getMentionPartSuggestionKeywords,
+	getSuggestions,
 	generateValueFromPartsAndChangedText,
 	generateValueWithAddedSuggestion,
 	generatePlainTextPart,

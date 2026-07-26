@@ -2,9 +2,7 @@
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"incremental": false,
-		"types": ["vitest/globals"],
-		"lib": ["dom", "esnext"]
+		"incremental": false
 	},
-	"include": ["src", "tests", "scripts", "vitest.config.ts", "tsup.config.ts"]
+	"include": ["src", "tests", "eslint.config.mjs", "tsdown.config.ts", "jest.config.mjs", "babel.config.mjs"]
 }

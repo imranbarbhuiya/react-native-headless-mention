@@ -1,68 +1,20 @@
-import React, { type MutableRefObject, useMemo, useRef, useState } from 'react';
-import { type NativeSyntheticEvent, Text, TextInput, type TextInputSelectionChangeEventData, View } from 'react-native';
+import React, { type MutableRefObject, useRef } from 'react';
+import { Text, TextInput } from 'react-native';
 
-import {
-	generateValueFromPartsAndChangedText,
-	generateValueWithAddedSuggestion,
-	getMentionPartSuggestionKeywords,
-	isMentionPartType,
-	parseValue,
-} from './lib/utils';
-
-import type { MentionInputProps, MentionPartType, Suggestion } from './lib/types';
+import type { MentionInputProps } from './lib/types';
 
 export type * from './lib/types';
 export * from './lib/utils';
+export * from './lib/useMention';
 
 export function Input({
+	parts,
 	value,
-	onChange,
-	partTypes = [],
 	inputRef: propInputRef,
-	containerStyle,
-	onSelectionChange,
 	component: Component = TextInput,
 	...textInputProps
 }: MentionInputProps) {
 	const textInput = useRef<TextInput | null>(null);
-
-	const [selection, setSelection] = useState({ start: 0, end: 0 });
-
-	const { plainText, parts } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
-
-	const prevPlainTextRef = useRef(plainText);
-	const collapseToControlledEmptyRef = useRef(false);
-	if (prevPlainTextRef.current.length > 0 && plainText.length === 0) {
-		collapseToControlledEmptyRef.current = true;
-	}
-	if (plainText.length > 0) {
-		collapseToControlledEmptyRef.current = false;
-	}
-	prevPlainTextRef.current = plainText;
-	const useControlledEmpty = plainText.length === 0 && collapseToControlledEmptyRef.current;
-
-	const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-		setSelection(event.nativeEvent.selection);
-
-		onSelectionChange?.(event);
-	};
-
-	const onChangeInput = (changedText: string) => {
-		onChange(...generateValueFromPartsAndChangedText(parts, plainText, changedText));
-	};
-
-	const keywordByTrigger = useMemo(
-		() => getMentionPartSuggestionKeywords(parts, plainText, selection, partTypes),
-		[parts, plainText, selection, partTypes],
-	);
-
-	const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
-		const newValue = generateValueWithAddedSuggestion(parts, mentionType, plainText, selection, suggestion);
-
-		if (!newValue) return;
-
-		onChange(newValue, parts);
-	};
 
 	const handleTextInputRef = (ref: TextInput) => {
 		textInput.current = ref;
@@ -73,53 +25,21 @@ export function Input({
 		}
 	};
 
-	const renderMentionSuggestions = (mentionType: MentionPartType) => (
-		<React.Fragment key={mentionType.trigger}>
-			{mentionType.renderSuggestions?.({
-				keyword: keywordByTrigger[mentionType.trigger],
-				onSuggestionPress: onSuggestionPress(mentionType),
-			})}
-		</React.Fragment>
-	);
-
 	return (
-		<View style={containerStyle}>
-			{(
-				partTypes.filter(
-					(one) =>
-						isMentionPartType(one) &&
-						one.renderSuggestions &&
-						(!one.renderPosition || one.renderPosition === 'top'),
-				) as MentionPartType[]
-			).map(renderMentionSuggestions)}
-			<Component
-				multiline
-				{...textInputProps}
-				{...(useControlledEmpty ? { value: '' } : {})}
-				ref={handleTextInputRef}
-				onChangeText={onChangeInput}
-				onSelectionChange={handleSelectionChange}
-				selection={selection}
-			>
-				{useControlledEmpty ? null : (
-					<Text>
-						{parts.map(({ text, partType, data }, index) =>
-							partType ? (
-								<Text key={`${index}-${data?.trigger ?? 'pattern'}`} style={partType.textStyle}>
-									{text}
-								</Text>
-							) : (
-								<Text key={index}>{text}</Text>
-							),
-						)}
-					</Text>
-				)}
-			</Component>
-			{(
-				partTypes.filter(
-					(one) => isMentionPartType(one) && one.renderSuggestions && one.renderPosition === 'bottom',
-				) as MentionPartType[]
-			).map(renderMentionSuggestions)}
-		</View>
+		<Component multiline {...textInputProps} ref={handleTextInputRef} value={value}>
+			{typeof value === 'string' ? null : (
+				<Text>
+					{parts.map(({ text, partType, data }, index) =>
+						partType ? (
+							<Text key={`${index}-${data?.trigger ?? 'pattern'}`} style={partType.textStyle}>
+								{text}
+							</Text>
+						) : (
+							<Text key={index}>{text}</Text>
+						),
+					)}
+				</Text>
+			)}
+		</Component>
 	);
 }
