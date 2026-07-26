@@ -1,6 +1,42 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [2.0.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.6...v2.0.0) - (2026-07-26)
+
+## 🐛 Bug Fixes
+
+- Apply allowedSpacesCount and document the props ([dc00022](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/dc00022efaceb6b156e28b18c31973cf90ba1ab7))
+
+## 🚀 Features
+
+- Hand suggestions to the consumer instead of rendering them ([4493a63](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/4493a63c729b5993fa62c921c21d4b3ac794bd0e))
+  - 💥 **BREAKING CHANGE:** partTypes[].renderSuggestions and partTypes[].renderPosition
+are removed; use suggestions[trigger] from useMention. Input no longer takes
+value, onChange and partTypes: pass them to useMention and spread inputProps.
+containerStyle is removed along with the wrapper View that held the
+suggestions.
+
+* perf: skip the character diff for single-run edits, which is what a
+keystroke, a backspace or a paste produces. Only replacements still need
+diffChars. A keystroke on a 4.5k char value goes from 0.096ms to 0.013ms
+and no longer grows with the length of the value.
+* fix: getPartsInterval sliced a part with an absolute document position as
+the end offset, so a kept run that started inside a part and ended before
+its end returned too much text and corrupted the value.
+* fix: onSuggestionPress is a no-op while its keyword is undefined, instead
+of wiping the text it had no trigger to replace.
+* perf: memoize inputProps and suggestions, and bail out of selection updates
+that do not move the cursor.
+* test: move from vitest to jest + @testing-library/react-native, since
+react-test-renderer is deprecated. Adds coverage for Input and for the
+full flow, which the previous setup could not render.
+* build: migrate tsup to tsdown, pin platform to neutral to keep the emitted
+file names, and declare types per export condition.
+* chore: base the tsconfig on @react-native/typescript-config.
+
+# Changelog
+All notable changes to this project will be documented in this file.
+
 # [1.2.4](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v1.2.3...v1.2.4) - (2024-12-13)
 
 ## 🐛 Bug Fixes
