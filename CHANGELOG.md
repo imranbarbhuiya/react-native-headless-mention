@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [2.1.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v2.0.1...v2.1.0) - (2026-08-20)
+
+## 🚀 Features
+
+- Add setSelection for programmatic caret movement ([51759cf](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/51759cf5d4935e61ba3c731f7e75a2b0602c1b3b))
+
+## 🧪 Testing
+
+- Add tests ([cc856a7](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/cc856a707e3724ab9469d5a7728813bca60eaf8a))
+
+# Changelog
+All notable changes to this project will be documented in this file.
+
 # [2.0.1](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v2.0.0...v2.0.1) - (2026-07-26)
 
 ## 🐛 Bug Fixes
