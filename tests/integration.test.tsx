@@ -119,4 +119,47 @@ describe('useMention with Input', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith('Hello <@1>!');
 	});
+
+	test('keeps tracking the caret when onSelectionChange is overridden on Input', async () => {
+		const onSelectionChange = jest.fn();
+		const ScreenWithOverride = () => {
+			const [value, setValue] = useState('Hello');
+			const { inputProps } = useMention({ value, onChange: setValue, partTypes });
+
+			return <Input {...inputProps} onSelectionChange={onSelectionChange} testID="input" />;
+		};
+
+		await render(<ScreenWithOverride />);
+		await fireEvent(screen.getByTestId('input'), 'selectionChange', {
+			nativeEvent: { selection: { start: 5, end: 5 } },
+		});
+
+		expect(onSelectionChange).toHaveBeenCalledTimes(1);
+		expect(screen.getByTestId('input').props.selection).toEqual({ start: 5, end: 5 });
+	});
+
+	test('calls both useMention and Input onSelectionChange handlers', async () => {
+		const fromHook = jest.fn();
+		const fromInput = jest.fn();
+		const ScreenWithBoth = () => {
+			const [value, setValue] = useState('Hello');
+			const { inputProps } = useMention({
+				value,
+				onChange: setValue,
+				partTypes,
+				onSelectionChange: fromHook,
+			});
+
+			return <Input {...inputProps} onSelectionChange={fromInput} testID="input" />;
+		};
+
+		await render(<ScreenWithBoth />);
+		await fireEvent(screen.getByTestId('input'), 'selectionChange', {
+			nativeEvent: { selection: { start: 5, end: 5 } },
+		});
+
+		expect(fromHook).toHaveBeenCalledTimes(1);
+		expect(fromInput).toHaveBeenCalledTimes(1);
+		expect(screen.getByTestId('input').props.selection).toEqual({ start: 5, end: 5 });
+	});
 });

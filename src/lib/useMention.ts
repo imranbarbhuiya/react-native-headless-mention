@@ -2,8 +2,29 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { generateValueFromPartsAndChangedText, getSuggestions, parseValue } from './utils';
 
-import type { UseMentionOptions, UseMentionResult } from './types';
+import type { Position, UseMentionOptions, UseMentionResult } from './types';
 import type { TextInputSelectionChangeEvent } from 'react-native';
+
+const mentionSelectionHandler = Symbol('mentionSelectionHandler');
+
+type MentionSetSelection = ((selection: Position) => void) & {
+	onHookSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
+};
+
+type MentionSelectionHandler = ((event: TextInputSelectionChangeEvent) => void) & {
+	[mentionSelectionHandler]?: true;
+};
+
+export function dispatchMentionSelectionChange(
+	setSelection: (selection: Position) => void,
+	onSelectionChange: ((event: TextInputSelectionChangeEvent) => void) | undefined,
+	event: TextInputSelectionChangeEvent,
+) {
+	const { start, end } = event.nativeEvent.selection;
+	setSelection({ start, end });
+	(setSelection as MentionSetSelection).onHookSelectionChange?.(event);
+	if (onSelectionChange && !(mentionSelectionHandler in onSelectionChange)) onSelectionChange(event);
+}
 
 /**
  * Hook holding all the mention state.
@@ -20,7 +41,24 @@ export function useMention({
 	partTypes = [],
 	onSelectionChange,
 }: UseMentionOptions): UseMentionResult {
-	const [selection, setSelection] = useState({ start: 0, end: 0 });
+	const [selection, setSelectionState] = useState({ start: 0, end: 0 });
+
+	const onSelectionChangeRef = useRef(onSelectionChange);
+	onSelectionChangeRef.current = onSelectionChange;
+
+	const setSelection = useMemo(() => {
+		const update: MentionSetSelection = (next) => {
+			setSelectionState((prev) =>
+				prev.start === next.start && prev.end === next.end ? prev : { start: next.start, end: next.end },
+			);
+		};
+
+		update.onHookSelectionChange = (event) => {
+			onSelectionChangeRef.current?.(event);
+		};
+
+		return update;
+	}, []);
 
 	const { plainText, parts } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
 
@@ -33,16 +71,18 @@ export function useMention({
 	prevPlainTextRef.current = plainText;
 	const useControlledEmpty = plainText.length === 0 && collapseToControlledEmptyRef.current;
 
-	const handleSelectionChange = useCallback(
-		(event: TextInputSelectionChangeEvent) => {
+	const handleSelectionChange = useMemo(() => {
+		const handler: MentionSelectionHandler = (event) => {
 			const { start, end } = event.nativeEvent.selection;
 
-			setSelection((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+			setSelection({ start, end });
+			onSelectionChangeRef.current?.(event);
+		};
 
-			onSelectionChange?.(event);
-		},
-		[onSelectionChange],
-	);
+		handler[mentionSelectionHandler] = true;
+
+		return handler;
+	}, [setSelection]);
 
 	const handleChangeText = useCallback(
 		(changedText: string) => {
@@ -60,15 +100,17 @@ export function useMention({
 		() => ({
 			parts,
 			selection,
+			setSelection,
 			onChangeText: handleChangeText,
 			onSelectionChange: handleSelectionChange,
 			...(useControlledEmpty ? { value: '' } : {}),
 		}),
-		[parts, selection, handleChangeText, handleSelectionChange, useControlledEmpty],
+		[parts, selection, setSelection, handleChangeText, handleSelectionChange, useControlledEmpty],
 	);
 
 	return {
 		inputProps,
+		setSelection,
 		suggestions,
 		parts,
 		plainText,

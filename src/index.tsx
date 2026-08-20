@@ -1,10 +1,13 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { Text, TextInput } from 'react-native';
 
+import { dispatchMentionSelectionChange, useMention } from './lib/useMention';
+
 import type { MentionInputProps } from './lib/types';
+import type { TextInputSelectionChangeEvent } from 'react-native';
 
 export type * from './lib/types';
-export * from './lib/useMention';
+export { useMention };
 export * from './lib/utils';
 
 export function Input({
@@ -12,6 +15,9 @@ export function Input({
 	value,
 	inputRef: propInputRef,
 	component: Component = TextInput,
+	selection,
+	setSelection,
+	onSelectionChange,
 	...textInputProps
 }: MentionInputProps) {
 	const textInput = useRef<TextInput | null>(null);
@@ -29,6 +35,13 @@ export function Input({
 		[propInputRef],
 	);
 
+	const handleSelectionChange = useCallback(
+		(event: TextInputSelectionChangeEvent) => {
+			dispatchMentionSelectionChange(setSelection, onSelectionChange, event);
+		},
+		[setSelection, onSelectionChange],
+	);
+
 	// Emptying the text through the children leaves a multiline input at the height it had grown to,
 	// since the native side keeps the size it last measured. Clearing it through the imperative
 	// handle updates that measurement, which handing it an empty value on its own does not do.
@@ -37,7 +50,14 @@ export function Input({
 	}, [value]);
 
 	return (
-		<Component multiline {...textInputProps} ref={handleTextInputRef} value={value}>
+		<Component
+			multiline
+			{...textInputProps}
+			onSelectionChange={handleSelectionChange}
+			ref={handleTextInputRef}
+			selection={selection}
+			value={value}
+		>
 			{typeof value === 'string' ? null : (
 				<Text>
 					{parts.map(({ text, partType, data }, index) =>

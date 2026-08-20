@@ -197,6 +197,10 @@ interface MentionInputControlProps {
 	parts: Part[];
 	selection: Selection;
 	/**
+	 * Moves the controlled caret, for a programmatic insert at the cursor.
+	 */
+	setSelection: (selection: Selection) => void;
+	/**
 	 * Only set while the value is being cleared, to hand the emptied text to the input itself.
 	 */
 	value?: string;
@@ -218,6 +222,13 @@ interface UseMentionResult {
 	 * The current value with every mention replaced by its label, so the text as the user sees it.
 	 */
 	plainText: string;
+	/**
+	 * Moves the controlled caret, for a programmatic insert at the cursor.
+	 *
+	 * The same function is on `inputProps`, so `Input` can keep tracking the selection even if
+	 * `onSelectionChange` is also passed after spreading `inputProps`.
+	 */
+	setSelection: (selection: Selection) => void;
 	/**
 	 * The suggestions state of every mention part type, keyed by trigger.
 	 *

@@ -104,12 +104,15 @@ export default function Campaigns() {
 
 `useMention({ value, onChange, partTypes, onSelectionChange? })` returns:
 
-| Key           | Description                                                                                                                                   |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `inputProps`  | Props to spread on `Input`. Holds the parsed parts, the selection and the change handlers.                                                      |
-| `suggestions` | `{ [trigger]: { keyword, onSuggestionPress } }` for every mention part type. `keyword` is `undefined` when the suggestions shouldn't be shown. |
-| `parts`       | The parsed parts of the current value.                                                                                                          |
-| `plainText`   | The current value with every mention replaced by its label.                                                                                     |
+| Key            | Description                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inputProps`   | Props to spread on `Input`. Holds the parsed parts, the selection, `setSelection` and the change handlers.                                      |
+| `setSelection` | Moves the controlled caret, for a programmatic insert at the cursor such as an emoji. The same function is on `inputProps`.                     |
+| `suggestions`  | `{ [trigger]: { keyword, onSuggestionPress } }` for every mention part type. `keyword` is `undefined` when the suggestions shouldn't be shown. |
+| `parts`        | The parsed parts of the current value.                                                                                                          |
+| `plainText`    | The current value with every mention replaced by its label.                                                                                     |
+
+`onSelectionChange` can be passed to `useMention`, to `Input`, or to both. `Input` keeps tracking the caret in every case, and both handlers run when both are set, so spreading `inputProps` and then passing `onSelectionChange` no longer replaces the library handler.
 
 Since the suggestions are just data, you can render them anywhere in your tree, including inside a portal, a modal or a `KeyboardAvoidingView`, and you can render the same trigger in more than one place.
 

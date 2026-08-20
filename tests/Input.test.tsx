@@ -43,6 +43,7 @@ const ClearableInput = ({ ref, ...props }: { ref?: Ref<{ clear: () => void }>; t
 const inputProps = (value: string, overrides: Partial<MentionInputProps> = {}): MentionInputProps => ({
 	parts: parseValue(value, partTypes).parts,
 	selection: { start: 0, end: 0 },
+	setSelection: jest.fn(),
 	onChangeText: jest.fn(),
 	onSelectionChange: jest.fn(),
 	testID: 'input',
@@ -114,6 +115,30 @@ describe('Input', () => {
 			nativeEvent: { selection: { start: 3, end: 3 } },
 		});
 
+		expect(onSelectionChange).toHaveBeenCalled();
+	});
+
+	test('calls setSelection when the selection changes', async () => {
+		const setSelection = jest.fn();
+		await render(<Input {...inputProps('Hello', { setSelection })} />);
+
+		await fireEvent(screen.getByTestId('input'), 'selectionChange', {
+			nativeEvent: { selection: { start: 3, end: 3 } },
+		});
+
+		expect(setSelection).toHaveBeenCalledWith({ start: 3, end: 3 });
+	});
+
+	test('calls setSelection even when onSelectionChange is overridden', async () => {
+		const setSelection = jest.fn();
+		const onSelectionChange = jest.fn();
+		await render(<Input {...inputProps('Hello', { setSelection, onSelectionChange })} />);
+
+		await fireEvent(screen.getByTestId('input'), 'selectionChange', {
+			nativeEvent: { selection: { start: 3, end: 3 } },
+		});
+
+		expect(setSelection).toHaveBeenCalledWith({ start: 3, end: 3 });
 		expect(onSelectionChange).toHaveBeenCalled();
 	});
 

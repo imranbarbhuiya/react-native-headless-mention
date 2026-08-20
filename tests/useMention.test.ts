@@ -110,12 +110,62 @@ describe('useMention', () => {
 		expect(onSelectionChange).toHaveBeenCalledTimes(1);
 	});
 
+	test('forwards to the latest onSelectionChange', async () => {
+		const first = jest.fn();
+		const second = jest.fn();
+		const hook = await renderUseMention({ value: 'Hello', onChange: jest.fn(), partTypes, onSelectionChange: first });
+
+		await hook.rerender({ value: 'Hello', onChange: jest.fn(), partTypes, onSelectionChange: second });
+		await hook.selectionChange(5, 5);
+
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
+	});
+
+	test('setSelection does not call onSelectionChange', async () => {
+		const onSelectionChange = jest.fn();
+		const hook = await renderUseMention({ value: 'Hello', onChange: jest.fn(), partTypes, onSelectionChange });
+
+		await act(async () => {
+			hook.result.current.setSelection({ start: 5, end: 5 });
+		});
+
+		expect(onSelectionChange).not.toHaveBeenCalled();
+		expect(hook.result.current.inputProps.selection).toEqual({ start: 5, end: 5 });
+	});
+
 	test('works without an onSelectionChange handler', async () => {
 		const hook = await renderUseMention({ value: 'Hello @jo', onChange: jest.fn(), partTypes });
 
 		await hook.selectionChange(9, 9);
 
 		expect(hook.result.current.inputProps.selection).toEqual({ start: 9, end: 9 });
+	});
+
+	test('exposes setSelection for a programmatic caret move', async () => {
+		const hook = await renderUseMention({ value: 'Hello', onChange: jest.fn(), partTypes });
+
+		await act(async () => {
+			hook.result.current.setSelection({ start: 5, end: 5 });
+		});
+
+		expect(hook.result.current.inputProps.selection).toEqual({ start: 5, end: 5 });
+		expect(hook.result.current.setSelection).toBe(hook.result.current.inputProps.setSelection);
+	});
+
+	test('setSelection ignores an update that does not move the caret', async () => {
+		const hook = await renderUseMention({ value: 'Hello', onChange: jest.fn(), partTypes });
+		await act(async () => {
+			hook.result.current.setSelection({ start: 5, end: 5 });
+		});
+		const { inputProps } = hook.result.current;
+
+		await act(async () => {
+			hook.result.current.setSelection({ start: 5, end: 5 });
+		});
+
+		expect(hook.result.current.inputProps).toBe(inputProps);
+		expect(hook.result.current.inputProps.selection).toBe(inputProps.selection);
 	});
 
 	test('exposes the keyword of the mention being typed at the cursor', async () => {
