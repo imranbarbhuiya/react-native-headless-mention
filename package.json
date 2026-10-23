@@ -103,5 +103,9 @@
 			"path": "./node_modules/cz-conventional-changelog"
 		}
 	},
-	"packageManager": "yarn@4.17.1"
+	"packageManager": "yarn@4.17.1",
+	"resolutions": {
+		"lodash": "^4.18.1",
+		"tmp": "^0.2.7"
+	}
 }
