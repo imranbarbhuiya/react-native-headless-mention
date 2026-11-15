@@ -433,6 +433,78 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): {
 	};
 };
 
+/**
+ * Method for mapping a position in one text of the parts to the other, the plain text or the value
+ *
+ * Plain text and pattern parts map one to one. A mention can't be split, so a position inside its
+ * label, or inside its original in the value, snaps to the edge picked by `bias`. A position past the
+ * end maps to the end.
+ *
+ * @param parts
+ * @param position
+ * @param bias - which edge of a mention a position inside it snaps to
+ * @param isToValue - whether the position is in the plain text and maps to the value, or the other way
+ */
+const mapPosition = (parts: Part[], position: number, bias: 'end' | 'start', isToValue: boolean): number => {
+	let valueEnd = 0;
+
+	for (const part of parts) {
+		const valuePosition = { start: valueEnd, end: valueEnd + (part.data ? part.data.original : part.text).length };
+		valueEnd = valuePosition.end;
+
+		const [from, to] = isToValue ? [part.position, valuePosition] : [valuePosition, part.position];
+
+		if (position > from.end) continue;
+
+		if (!part.data) return to.start + (position - from.start);
+
+		if (position === from.start) return to.start;
+
+		if (position === from.end) return to.end;
+
+		return bias === 'start' ? to.start : to.end;
+	}
+
+	return isToValue ? valueEnd : (parts.at(-1)?.position.end ?? 0);
+};
+
+const mapSelection = (parts: Part[], selection: Position, isToValue: boolean): Position => {
+	if (selection.start === selection.end) {
+		const caret = mapPosition(parts, selection.end, 'end', isToValue);
+
+		return { start: caret, end: caret };
+	}
+
+	return {
+		start: mapPosition(parts, selection.start, 'start', isToValue),
+		end: mapPosition(parts, selection.end, 'end', isToValue),
+	};
+};
+
+/**
+ * Maps a selection in the plain text, such as the selection of the input, to the value
+ *
+ * A selection partly covering a mention grows to cover all of it, and a caret inside one moves past
+ * it. Use it to run a formatting edit on the value, such as wrapping the selection in `**`.
+ *
+ * @param parts - the parts of the value
+ * @param selection - a selection in the plain text
+ * @returns the selection in the value
+ */
+const toValueSelection = (parts: Part[], selection: Position): Position => mapSelection(parts, selection, true);
+
+/**
+ * Maps a selection in the value to the plain text, such as to move the caret of the input after an edit
+ *
+ * It grows a selection partly covering a mention and moves a caret inside one past it, the same way
+ * as `toValueSelection`.
+ *
+ * @param parts - the parts of the value
+ * @param selection - a selection in the value
+ * @returns the selection in the plain text
+ */
+const toPlainTextSelection = (parts: Part[], selection: Position): Position => mapSelection(parts, selection, false);
+
 export {
 	generateMentionPart,
 	generatePlainTextPart,
@@ -444,4 +516,6 @@ export {
 	getValueFromParts,
 	isMentionPartType,
 	parseValue,
+	toPlainTextSelection,
+	toValueSelection,
 };

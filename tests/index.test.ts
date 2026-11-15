@@ -11,6 +11,8 @@ import {
 	getValueFromParts,
 	isMentionPartType,
 	parseValue,
+	toPlainTextSelection,
+	toValueSelection,
 } from '../src/lib/utils';
 
 import type { MentionPartType, PartType } from '../src/lib/types';
@@ -659,6 +661,73 @@ describe('getSuggestions', () => {
 		suggestions['@'].onSuggestionPress({ id: '1' });
 
 		expect(onChange).not.toHaveBeenCalled();
+	});
+});
+
+const caret = (position: number) => ({ start: position, end: position });
+
+describe('toValueSelection and toPlainTextSelection', () => {
+	// The plain text is "hi @123 yo" and the value is "hi <@123> yo"
+	const { parts } = parseValue('hi <@123> yo', [mentionPartType]);
+
+	test('map plain text one to one', () => {
+		expect(toValueSelection(parts, { start: 0, end: 2 })).toEqual({ start: 0, end: 2 });
+		expect(toValueSelection(parts, { start: 8, end: 10 })).toEqual({ start: 10, end: 12 });
+		expect(toPlainTextSelection(parts, { start: 10, end: 12 })).toEqual({ start: 8, end: 10 });
+		expect(toValueSelection(parts, caret(2))).toEqual(caret(2));
+		expect(toValueSelection(parts, caret(10))).toEqual(caret(12));
+	});
+
+	test('map the edges of a mention to its edges', () => {
+		expect(toValueSelection(parts, { start: 3, end: 7 })).toEqual({ start: 3, end: 9 });
+		expect(toPlainTextSelection(parts, { start: 3, end: 9 })).toEqual({ start: 3, end: 7 });
+		expect(toValueSelection(parts, caret(3))).toEqual(caret(3));
+		expect(toValueSelection(parts, caret(7))).toEqual(caret(9));
+		expect(toPlainTextSelection(parts, caret(9))).toEqual(caret(7));
+	});
+
+	test('grow a selection partly covering a mention to cover all of it', () => {
+		expect(toValueSelection(parts, { start: 0, end: 5 })).toEqual({ start: 0, end: 9 });
+		expect(toValueSelection(parts, { start: 5, end: 10 })).toEqual({ start: 3, end: 12 });
+		expect(toValueSelection(parts, { start: 4, end: 6 })).toEqual({ start: 3, end: 9 });
+		expect(toPlainTextSelection(parts, { start: 4, end: 7 })).toEqual({ start: 3, end: 7 });
+	});
+
+	test('move a caret inside a mention past it', () => {
+		expect(toValueSelection(parts, caret(5))).toEqual(caret(9));
+		expect(toPlainTextSelection(parts, caret(6))).toEqual(caret(7));
+	});
+
+	test('clamp a selection past the end', () => {
+		expect(toValueSelection(parts, caret(100))).toEqual(caret(12));
+		expect(toPlainTextSelection(parts, caret(100))).toEqual(caret(10));
+		expect(toValueSelection([], caret(5))).toEqual(caret(0));
+		expect(toPlainTextSelection([], caret(5))).toEqual(caret(0));
+	});
+
+	test('move a caret between two mentions to the end of the first', () => {
+		const { parts: adjacent } = parseValue('<@1><@2>', [mentionPartType]);
+		expect(toValueSelection(adjacent, caret(2))).toEqual(caret(4));
+		expect(toPlainTextSelection(adjacent, caret(4))).toEqual(caret(2));
+	});
+
+	test('map pattern parts one to one', () => {
+		const bold: PartType = { pattern: /\*\*\S(?:.*?\S)?\*\*/g };
+		const { parts: styled } = parseValue('**hi** <@1>!', [mentionPartType, bold]);
+		expect(toValueSelection(styled, { start: 2, end: 4 })).toEqual({ start: 2, end: 4 });
+		expect(toValueSelection(styled, caret(10))).toEqual(caret(12));
+	});
+
+	test('wrap a selection in bold and move the caret after it', () => {
+		const value = 'hi <@123> yo';
+		// The user selects "@123 y", which is "<@123> y" in the value
+		const { start, end } = toValueSelection(parts, { start: 3, end: 9 });
+		const wrapped = `${value.slice(0, start)}**${value.slice(start, end)}**${value.slice(end)}`;
+		expect(wrapped).toBe('hi **<@123> y**o');
+
+		const { parts: wrappedParts, plainText } = parseValue(wrapped, [mentionPartType]);
+		expect(plainText).toBe('hi **@123 y**o');
+		expect(toPlainTextSelection(wrappedParts, caret(end + 4))).toEqual(caret(13));
 	});
 });
 
