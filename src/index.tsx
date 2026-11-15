@@ -1,13 +1,13 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { Text, TextInput } from 'react-native';
 
-import { dispatchMentionSelectionChange, useMention } from './lib/useMention';
+import { dispatchMentionSelectionChange } from './lib/useMention';
 
 import type { MentionInputProps } from './lib/types';
 import type { TextInputSelectionChangeEvent } from 'react-native';
 
 export type * from './lib/types';
-export { useMention };
+export { useMention } from './lib/useMention';
 export * from './lib/utils';
 
 export function Input({
