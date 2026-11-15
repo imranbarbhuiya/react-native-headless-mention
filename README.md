@@ -190,6 +190,59 @@ export default function Campaigns() {
 
 ```
 
+### Map a selection between the value and the plain text
+
+The selection of the input, and the one `setSelection` takes, are positions in the plain text, where a mention reads as its label (`@Parbez`). The value holds the original (`<@1>`) instead. To run a formatting edit on the value, such as wrapping the selection in `**`, map the selection to the value with `toValueSelection`, edit the value, then map the new caret back with `toPlainTextSelection`.
+
+A mention can't be split, so both helpers grow a selection that partly covers a mention to cover all of it, and move a caret that lands inside a mention past it. A selection past the end maps to the end.
+
+```tsx
+import { useState } from 'react';
+import { Button, View } from 'react-native';
+import {
+	Input,
+	parseValue,
+	toPlainTextSelection,
+	toValueSelection,
+	useMention,
+	type PartType,
+} from 'react-native-headless-mention';
+
+const partTypes: PartType[] = [
+	{
+		trigger: '@',
+		getLabel: (mention) => `@${mention.id}`,
+		pattern: /<(?<trigger>@)(?<id>\d+)>/g,
+	},
+	{
+		textStyle: { fontWeight: '700' },
+		pattern: /\*\*(?<text>\S(?:.*?\S)?)\*\*/g,
+	},
+];
+
+export default function Editor() {
+	const [value, setValue] = useState('');
+
+	const { inputProps, parts, setSelection } = useMention({ value, onChange: setValue, partTypes });
+
+	const bold = () => {
+		const { start, end } = toValueSelection(parts, inputProps.selection);
+		const nextValue = `${value.slice(0, start)}**${value.slice(start, end)}**${value.slice(end)}`;
+
+		setValue(nextValue);
+		// Put the caret after the closing `**`, which is 4 characters past the end of the selection
+		setSelection(toPlainTextSelection(parseValue(nextValue, partTypes).parts, { start: end + 4, end: end + 4 }));
+	};
+
+	return (
+		<View>
+			<Button onPress={bold} title="Bold" />
+			<Input {...inputProps} />
+		</View>
+	);
+}
+```
+
 ## Migrating from v1
 
 `Input` no longer renders the suggestions, so it no longer owns the mention state either. Move it to `useMention` and render the suggestions yourself:
