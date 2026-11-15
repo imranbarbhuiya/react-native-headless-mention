@@ -105,6 +105,49 @@ export const getPartsInterval = (parts: Part[], cursor: number, count: number): 
 	return partsInterval;
 };
 
+/**
+ * Method for finding the keyword being typed for a mention part type
+ *
+ * There's only a keyword for a collapsed selection right after a trigger that starts the text or
+ * follows whitespace, with no new line in between and no more spaces than `allowedSpacesCount`.
+ * The trigger has to end before the cursor, so a cursor placed right in front of one finds nothing.
+ *
+ * @param parts
+ * @param plainText
+ * @param selection
+ * @param mentionType
+ * @returns the index of the part holding the keyword and the position of its trigger in the plain text
+ */
+const findKeyword = (
+	parts: Part[],
+	plainText: string,
+	selection: Position,
+	{ trigger, allowedSpacesCount = 1 }: MentionPartType,
+): { partIndex: number; triggerIndex: number } | undefined => {
+	if (selection.end !== selection.start) return;
+
+	const partIndex = parts.findIndex((one) => selection.end > one.position.start && selection.end <= one.position.end);
+	const part = parts[partIndex];
+
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	if (!part || part.data) return;
+
+	const triggerOffset = plainText.slice(part.position.start, selection.end).lastIndexOf(trigger);
+
+	if (triggerOffset === -1) return;
+
+	const triggerIndex = part.position.start + triggerOffset;
+
+	if (triggerIndex > 0 && !/\s/.test(plainText[triggerIndex - 1])) return;
+
+	const typed = plainText.slice(triggerIndex + trigger.length, selection.end);
+
+	// A new line always ends the keyword, and so does one space too many
+	if (typed.includes('\n') || typed.split(' ').length - 1 > allowedSpacesCount) return;
+
+	return { partIndex, triggerIndex };
+};
+
 const getMentionPartSuggestionKeywords = (
 	parts: Part[],
 	plainText: string,
@@ -113,46 +156,12 @@ const getMentionPartSuggestionKeywords = (
 ): { [trigger: string]: string | undefined } => {
 	const keywordByTrigger: { [trigger: string]: string | undefined } = {};
 
-	for (const { trigger, allowedSpacesCount = 1 } of partTypes.filter(isMentionPartType)) {
-		keywordByTrigger[trigger] = undefined;
+	for (const mentionType of partTypes.filter(isMentionPartType)) {
+		const keyword = findKeyword(parts, plainText, selection, mentionType);
 
-		if (selection.end !== selection.start) continue;
-
-		const part = parts.find((one) => selection.end > one.position.start && selection.end <= one.position.end);
-
-		if (!part || part.data) continue;
-
-		const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
-
-		if (
-			triggerIndex === -1 ||
-			triggerIndex < part.position.start ||
-			(triggerIndex > 0 && !/\s/gi.test(plainText[triggerIndex - 1]))
-		)
-			continue;
-
-		let spacesCount = 0;
-		let isKeywordEnded = false;
-		for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
-			// A new line always ends the keyword, and so does one space too many
-			if (plainText[cursor] === '\n') {
-				isKeywordEnded = true;
-				break;
-			}
-
-			if (plainText[cursor] === ' ') {
-				spacesCount += 1;
-
-				if (spacesCount > allowedSpacesCount) {
-					isKeywordEnded = true;
-					break;
-				}
-			}
-		}
-
-		if (isKeywordEnded) continue;
-
-		keywordByTrigger[trigger] = plainText.slice(triggerIndex + 1, selection.end);
+		keywordByTrigger[mentionType.trigger] = keyword
+			? plainText.slice(keyword.triggerIndex + mentionType.trigger.length, selection.end)
+			: undefined;
 	}
 
 	return keywordByTrigger;
@@ -245,6 +254,12 @@ const generateValueFromPartsAndChangedText = (
 	return [getValueFromParts(newParts), newParts];
 };
 
+/**
+ * Method for replacing the keyword being typed with a mention of the picked suggestion
+ *
+ * @returns the new value, or `undefined` when there's no keyword at the selection, since there's no
+ * trigger to replace
+ */
 const generateValueWithAddedSuggestion = (
 	parts: Part[],
 	mentionType: MentionPartType,
@@ -252,33 +267,21 @@ const generateValueWithAddedSuggestion = (
 	selection: Position,
 	suggestion: Suggestion,
 ): string | undefined => {
-	const currentPartIndex = parts.findIndex(
-		(one) => selection.end >= one.position.start && selection.end <= one.position.end,
-	);
-	const currentPart = parts[currentPartIndex];
+	const keyword = findKeyword(parts, plainText, selection, mentionType);
 
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-	if (!currentPart) return;
+	if (!keyword) return;
 
-	const triggerPartIndex = currentPart.text.lastIndexOf(
-		mentionType.trigger,
-		selection.end - currentPart.position.start,
-	);
-
-	const newMentionPartPosition: Position = {
-		start: triggerPartIndex,
-		end: selection.end - currentPart.position.start,
-	};
+	const { partIndex, triggerIndex } = keyword;
+	const currentPart = parts[partIndex];
 
 	const isInsertSpaceToNextPart =
 		mentionType.insertSpaceAfterMention &&
-		(plainText.length === selection.end ||
-			parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
+		(plainText.length === selection.end || plainText.startsWith('\n', selection.end));
 
 	return getValueFromParts([
-		...parts.slice(0, currentPartIndex),
+		...parts.slice(0, partIndex),
 
-		generatePlainTextPart(currentPart.text.slice(0, Math.max(0, newMentionPartPosition.start))),
+		generatePlainTextPart(currentPart.text.slice(0, triggerIndex - currentPart.position.start)),
 		generateMentionPart(mentionType, {
 			original: getMentionValue(mentionType.trigger, suggestion),
 			trigger: mentionType.trigger,
@@ -286,10 +289,10 @@ const generateValueWithAddedSuggestion = (
 		}),
 
 		generatePlainTextPart(
-			`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.slice(Math.max(0, newMentionPartPosition.end))}`,
+			`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.slice(selection.end - currentPart.position.start)}`,
 		),
 
-		...parts.slice(currentPartIndex + 1),
+		...parts.slice(partIndex + 1),
 	]);
 };
 
@@ -320,9 +323,6 @@ const getSuggestions = (
 		suggestions[mentionType.trigger] = {
 			keyword,
 			onSuggestionPress: (suggestion) => {
-				// Without a keyword there is no trigger to replace, so applying the suggestion would wipe the text
-				if (keyword === undefined) return;
-
 				const newValue = generateValueWithAddedSuggestion(parts, mentionType, plainText, selection, suggestion);
 
 				if (!newValue) return;
