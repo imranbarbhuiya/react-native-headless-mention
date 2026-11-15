@@ -160,12 +160,12 @@ describe('Mention Input Tests', () => {
 	});
 
 	test('Multiple mentions', () => {
-		const { parts, plainText } = parseValue('', [mentionPartType]);
+		const { parts, plainText } = parseValue('@', [mentionPartType]);
 		let value = generateValueWithAddedSuggestion(
 			parts,
 			mentionPartType,
 			plainText,
-			{ start: 0, end: 0 },
+			{ start: 1, end: 1 },
 			{ id: '123' },
 		);
 		expect(value).toBe('<@123>');
@@ -269,6 +269,12 @@ describe('generateValueFromPartsAndChangedText', () => {
 	});
 });
 
+const multiCharPartType: MentionPartType = {
+	trigger: '::',
+	pattern: /<(?<trigger>::)(?<id>\w+)>/g,
+	getLabel: (mention) => `::${mention.id}`,
+};
+
 describe('getMentionPartSuggestionKeywords', () => {
 	test('returns keyword after trigger', () => {
 		const { parts, plainText } = parseValue('Hello @jo', [mentionPartType]);
@@ -366,6 +372,48 @@ describe('getMentionPartSuggestionKeywords', () => {
 		expect(keywords['@']).toBe('jo');
 	});
 
+	test('returns an empty keyword right after the trigger', () => {
+		for (const value of ['@', 'Hello @']) {
+			const { parts, plainText } = parseValue(value, [mentionPartType]);
+			const keywords = getMentionPartSuggestionKeywords(
+				parts,
+				plainText,
+				{ start: plainText.length, end: plainText.length },
+				[mentionPartType],
+			);
+			expect(keywords['@']).toBe('');
+		}
+	});
+
+	test('returns undefined when the cursor is right before the trigger', () => {
+		const { parts, plainText } = parseValue('a @b', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(parts, plainText, { start: 2, end: 2 }, [mentionPartType]);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('returns undefined when the cursor is right before the trigger at the start', () => {
+		const { parts, plainText } = parseValue('@b', [mentionPartType]);
+		const keywords = getMentionPartSuggestionKeywords(parts, plainText, { start: 0, end: 0 }, [mentionPartType]);
+		expect(keywords['@']).toBeUndefined();
+	});
+
+	test('leaves a trigger of more than one character out of the keyword', () => {
+		const { parts, plainText } = parseValue('hi ::sm', [multiCharPartType]);
+		const keywords = getMentionPartSuggestionKeywords(
+			parts,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			[multiCharPartType],
+		);
+		expect(keywords['::']).toBe('sm');
+	});
+
+	test('returns undefined when the cursor is between the characters of the trigger', () => {
+		const { parts, plainText } = parseValue('hi ::sm', [multiCharPartType]);
+		const keywords = getMentionPartSuggestionKeywords(parts, plainText, { start: 4, end: 4 }, [multiCharPartType]);
+		expect(keywords['::']).toBeUndefined();
+	});
+
 	test('returns undefined when cursor is inside an existing mention', () => {
 		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
 		const keywords = getMentionPartSuggestionKeywords(
@@ -393,6 +441,97 @@ describe('generateValueWithAddedSuggestion', () => {
 			{ id: '1' },
 		);
 		expect(value).toBe('Hello <@1> ');
+	});
+
+	test('replaces the keyword and keeps the text after the cursor', () => {
+		const { parts, plainText } = parseValue('Hello @jo world', [mentionPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionPartType,
+			plainText,
+			{ start: 9, end: 9 },
+			{ id: '1' },
+		);
+		expect(value).toBe('Hello <@1> world');
+	});
+
+	test('keeps the mentions before and after the keyword', () => {
+		const { parts, plainText } = parseValue('<@1> @ja <@2>', [mentionPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionPartType,
+			plainText,
+			{ start: 6, end: 6 },
+			{ id: '3' },
+		);
+		expect(value).toBe('<@1> <@3> <@2>');
+	});
+
+	test('inserts the space before a new line, but not before other text', () => {
+		const mentionWithSpace: MentionPartType = { ...mentionPartType, insertSpaceAfterMention: true };
+		const insertAt = (text: string, cursor: number) => {
+			const { parts, plainText } = parseValue(text, [mentionWithSpace]);
+			return generateValueWithAddedSuggestion(
+				parts,
+				mentionWithSpace,
+				plainText,
+				{ start: cursor, end: cursor },
+				{ id: '1' },
+			);
+		};
+		expect(insertAt('@jo\nnext', 3)).toBe('<@1> \nnext');
+		expect(insertAt('@jo next', 3)).toBe('<@1> next');
+	});
+
+	test('replaces a trigger of more than one character', () => {
+		const { parts, plainText } = parseValue('hi ::sm', [multiCharPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			multiCharPartType,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			{ id: 'smile' },
+		);
+		expect(value).toBe('hi <::smile>');
+		expect(parseValue(value!, [multiCharPartType]).plainText).toBe('hi ::smile');
+	});
+
+	test('returns undefined when the cursor is right before the trigger', () => {
+		const { parts, plainText } = parseValue('a @b', [mentionPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionPartType,
+			plainText,
+			{ start: 2, end: 2 },
+			{ id: '1' },
+		);
+		expect(value).toBeUndefined();
+	});
+
+	test('returns undefined when there is no trigger to replace', () => {
+		for (const text of ['', 'Hello']) {
+			const { parts, plainText } = parseValue(text, [mentionPartType]);
+			const value = generateValueWithAddedSuggestion(
+				parts,
+				mentionPartType,
+				plainText,
+				{ start: plainText.length, end: plainText.length },
+				{ id: '1' },
+			);
+			expect(value).toBeUndefined();
+		}
+	});
+
+	test('returns undefined right after an existing mention', () => {
+		const { parts, plainText } = parseValue('Hello <@123>', [mentionPartType]);
+		const value = generateValueWithAddedSuggestion(
+			parts,
+			mentionPartType,
+			plainText,
+			{ start: plainText.length, end: plainText.length },
+			{ id: '1' },
+		);
+		expect(value).toBeUndefined();
 	});
 
 	test('returns undefined when selection is outside parts', () => {
@@ -498,6 +637,17 @@ describe('getSuggestions', () => {
 		);
 		suggestions['#'].onSuggestionPress({ id: '1' });
 
+		expect(onChange).not.toHaveBeenCalled();
+	});
+
+	test('onSuggestionPress does not call onChange when the cursor is right before the trigger', () => {
+		const onChange = jest.fn();
+		const { parts, plainText } = parseValue('a @b', [mentionPartType]);
+
+		const suggestions = getSuggestions(parts, plainText, { start: 2, end: 2 }, [mentionPartType], onChange);
+		suggestions['@'].onSuggestionPress({ id: '1' });
+
+		expect(suggestions['@'].keyword).toBeUndefined();
 		expect(onChange).not.toHaveBeenCalled();
 	});
 
