@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+# [2.2.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v2.1.0...v2.2.0) - (2026-11-17)
+
+## 🐛 Bug Fixes
+
+- Only start a keyword at a trigger before the caret ([0087f18](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/0087f18c6bb1ddde6a2de7111bd0e38225e47d7c))
+- **deps:** Refresh lockfile and pin patched lodash and tmp for security advisories ([cba3e8f](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/cba3e8f4de56ed823cff0c47c3a108d793112a60))
+
+## 🚀 Features
+
+- Add toValueSelection and toPlainTextSelection ([efe55f8](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/efe55f83c19434cd8f4cb94da1aa581ff3f9d31e))
+
+## 🪞 Styling
+
+- Re-export useMention with export from ([691547d](https://github.com/imranbarbhuiya/react-native-headless-mention/commit/691547d53fa82709c9335c2b87156b5e7e075573))
+
 # [2.1.0](https://github.com/imranbarbhuiya/react-native-headless-mention/compare/v2.0.1...v2.1.0) - (2026-08-20)
 
 ## 🚀 Features
